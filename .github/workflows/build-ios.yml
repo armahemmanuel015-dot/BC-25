@@ -1,0 +1,29 @@
+name: Build iOS App
+on: [push] # Build starts every time you push code
+
+jobs:
+  build:
+    runs-on: macos-latest # This tells GitHub to use a Mac in the cloud
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Cordova
+        run: npm install -g cordova
+
+      - name: Add iOS Platform
+        run: cordova platform add ios
+
+      - name: Build iOS (Unsigned)
+        run: cordova build ios --no-telemetry
+
+      - name: Upload APK/IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app
+          path: platforms/ios/build/device/*.ipa # This captures the finished app
