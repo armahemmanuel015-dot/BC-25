@@ -1,0 +1,6 @@
+{
+  "appId": "com.shepherdnet.app",
+  "appName": "ShepherdNet",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
