@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>My Profile | ShepherdNet</title>
+    
+    <link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <style>
+        /* --- APP THEME --- */
+        :root {
+            --gold-primary: #F2A20C;
+            --gold-dark: #BF9C34;
+            --bg: #0f172a;
+            --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --sidebar-width: 260px;
+            --sidebar-mini: 80px;
+            --danger: #ff4b5c;
+            --success: #00ff88;
+            --input-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --glass: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+            --input-bg: #f1f5f9;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s;
+        }
+
+        /* --- SIDEBAR --- */
+        nav {
+            width: var(--sidebar-width);
+            background: var(--glass);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+        }
+
+        body.sidebar-mini nav { width: var(--sidebar-mini); padding: 30px 15px; }
+        body.sidebar-mini .profile-info, 
+        body.sidebar-mini nav a span:last-child, 
+        body.sidebar-mini .nav-label { display: none; }
+        body.sidebar-mini .logo-text { display: none; }
+        body.sidebar-mini .menu-toggle i { transform: rotate(180deg); }
+
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; color: var(--gold-primary); font-weight: 700; font-size: 1.2rem; white-space: nowrap; overflow: hidden; }
+        .logo-icon { width: 35px; height: 35px; object-fit: contain; }
+
+        nav a {
+            display: flex; align-items: center; gap: 15px;
+            color: var(--text-dim); text-decoration: none;
+            padding: 12px 15px; border-radius: 12px;
+            margin-bottom: 5px; transition: 0.2s; font-size: 0.9rem; font-weight: 500;
+            white-space: nowrap; position: relative;
+        }
+        nav a:hover, nav a.active { background: rgba(242, 162, 12, 0.1); color: var(--gold-primary); }
+        nav a i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            flex: 1; padding: 40px;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+            max-width: 600px; margin: 0 auto;
+            width: 100%;
+        }
+        body.sidebar-mini main { margin-left: auto; margin-right: auto; }
+
+        /* --- SETTINGS FORM --- */
+        .header { text-align: center; margin-bottom: 40px; }
+        
+        .profile-pic-container {
+            width: 120px; height: 120px; margin: 0 auto 15px; position: relative;
+        }
+        #profileDisplay {
+            width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+            border: 4px solid var(--gold-primary); background: var(--bg);
+        }
+        .upload-label {
+            position: absolute; bottom: 0; right: 0;
+            background: var(--gold-primary); color: #000;
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border: 3px solid var(--bg); font-size: 1rem;
+        }
+
+        .role-badge {
+            display: inline-block; padding: 6px 18px;
+            background: rgba(242, 162, 12, 0.15); color: var(--gold-primary); border: 1px solid var(--gold-primary);
+            border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .form-group { margin-bottom: 25px; }
+        label { display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 8px; font-weight: 500; }
+        
+        input, textarea {
+            width: 100%; padding: 14px; background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border); border-radius: 12px;
+            color: var(--text-main); font-family: inherit; outline: none; transition: 0.3s;
+        }
+        textarea { resize: vertical; min-height: 100px; }
+        input:focus, textarea:focus { border-color: var(--gold-primary); background: rgba(242, 162, 12, 0.05); }
+        input:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-save {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold-primary));
+            border: none; border-radius: 12px;
+            color: #fff; font-weight: 600; font-size: 1rem;
+            cursor: pointer; transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(242, 162, 12, 0.3);
+        }
+        .btn-save:active { transform: scale(0.98); }
+
+        .theme-section {
+            margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .theme-btn {
+            background: var(--glass); border: 1px solid var(--border);
+            color: var(--text-main); padding: 10px 20px; border-radius: 10px;
+            cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 0.9rem;
+        }
+
+        .support-btn {
+            background: transparent; border: 1px solid var(--text-dim);
+            color: var(--text-dim); padding: 12px; border-radius: 12px; width: 100%;
+            cursor: pointer; font-size: 0.85rem; margin-top: 10px; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .support-btn:hover { border-color: var(--gold-primary); color: var(--gold-primary); }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: #1e293b; padding: 30px; border-radius: 20px; width: 90%; max-width: 450px; border: 1px solid var(--border); position: relative; }
+        .close-modal { position: absolute; top: 15px; right: 15px; font-size: 1.5rem; cursor: pointer; color: var(--text-dim); }
+
+        /* Sidebar Toggle Button */
+        .menu-toggle {
+            position: absolute; right: -15px; top: 35px; width: 30px; height: 30px;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: var(--gold-primary); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1100;
+        }
+
+        /* Mobile Trigger */
+        .mobile-btn { display: none; position: fixed; top: 20px; right: 20px; z-index: 2000; background: var(--gold-primary); color: #fff; width: 45px; height: 45px; border-radius: 50%; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+
+        /* Mobile Overlay */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 900; opacity: 0; pointer-events: none; transition: 0.3s; }
+        body.mobile-open .overlay { opacity: 1; pointer-events: auto; }
+
+        @media (max-width: 768px) {
+            nav { transform: translateX(-100%); width: 260px !important; }
+            body.mobile-open nav { transform: translateX(0); }
+            main { margin-left: 0 !important; padding: 100px 20px 40px 20px; }
+            .menu-toggle { display: none; }
+            .mobile-btn { display: flex; }
+            body.sidebar-mini nav { width: 260px; } 
+            body.sidebar-mini .nav-label, body.sidebar-mini .logo-text, body.sidebar-mini nav a span:last-child { display: inline; }
+        }
+    </style>
+</head>
+<body class="sidebar-mini">
+
+    <div class="overlay" id="overlay"></div>
+    <div class="mobile-btn" id="mobileBtn"><i class="fa-solid fa-bars"></i></div>
+
+    <nav id="sidebar">
+        <div class="menu-toggle" id="sidebarToggle"><i class="fa-solid fa-chevron-left"></i></div>
+
+        <div class="logo-area">
+            <img src="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d" class="logo-icon">
+            <span class="logo-text">ShepherdNet</span>
+        </div>
+
+        <a href="#" id="backNav" class="active"><i class="fa-solid fa-arrow-left"></i> <span>Back to Dashboard</span></a>
+        
+        <div style="flex-grow:1"></div>
+        
+        <a href="#" id="logoutBtn" style="color:var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> <span>Sign Out</span></a>
+    </nav>
+
+    <main>
+        <div class="header">
+            <div class="profile-pic-container">
+                <img id="profileDisplay" src="https://via.placeholder.com/120?text=User" alt="Profile">
+                <label for="fileInput" class="upload-label"><i class="fa-solid fa-camera"></i></label>
+                <input type="file" id="fileInput" accept="image/*" style="display:none;">
+            </div>
+            <div id="userRole" class="role-badge">Loading...</div>
+            <h2 id="displayTitle">Profile Settings</h2>
+        </div>
+
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="fullName" placeholder="Enter your full name">
+        </div>
+
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="userEmail" disabled>
+        </div>
+
+        <button id="saveProfile" class="btn-save">Update Profile</button>
+
+        <div class="theme-section">
+            <label style="margin: 0;">App Appearance</label>
+            <button id="themeToggle" class="theme-btn">
+                <i class="fa-solid fa-moon" id="themeIcon"></i> <span id="themeText">Dark Mode</span>
+            </button>
+        </div>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
+            <button id="contactSupportBtn" class="support-btn">
+                <i class="fa-solid fa-headset"></i> Contact Support
+            </button>
+            <button id="resetPass" style="background:none; border: none; color: var(--text-dim); width: 100%; padding: 12px; margin-top: 5px; cursor: pointer; font-size: 0.85rem; transition:0.2s;">
+                <i class="fa-solid fa-lock"></i> Reset Password
+            </button>
+        </div>
+
+        <p style="text-align:center; font-size:0.7rem; color:var(--text-dim); margin-top:30px; opacity:0.5;">
+            ShepherdNet v1.1.0
+        </p>
+    </main>
+
+    <div id="supportModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeSupport">&times;</span>
+            <h3 style="color:var(--gold-primary); margin-top:0;">Contact Support</h3>
+            <p style="font-size:0.85rem; opacity:0.7; margin-bottom:20px;">Bug report or feature request? We're listening.</p>
+            
+            <form id="supportForm">
+                <input type="text" id="supportSubject" placeholder="Subject (e.g. Issue with Attendance)" required>
+                <textarea id="supportMessage" placeholder="Describe your issue or suggestion..." required></textarea>
+                <button type="submit" class="btn-save" id="sendSupportBtn">Send Message</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { initializeFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js";
+
+        // Initialize EmailJS
+        (function() {
+            emailjs.init("hbLNGNgE4WvbIYFFr"); // Ensure this Public Key is correct
+        })();
+
+        const firebaseConfig = { apiKey: "AIzaSyCBv60eRCO0e4dFBMKGKnIATouxTuk1Bcc", authDomain: "fob-database-139d1.firebaseapp.com", projectId: "fob-database-139d1", storageBucket: "fob-database-139d1.firebasestorage.app", appId: "1:375165731354:web:b5fa57dcb2d71ee0d8c7a3" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = initializeFirestore(app, { experimentalForceLongPolling: true }, "fobrealdbase");
+        const storage = getStorage(app);
+
+        let currentRoleColl = "";
+        let selectedFile = null;
+        let currentUserData = {}; // Store for email sending
+
+        // --- THEME & UI LOGIC ---
+        const body = document.body;
+        const themeBtn = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        
+        applyTheme(savedTheme);
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            themeIcon.className = theme === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+            themeText.innerText = theme === 'dark' ? 'Dark Mode' : 'Light Mode';
+            localStorage.setItem('theme', theme);
+        }
+
+        themeBtn.onclick = () => {
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            applyTheme(next);
+        };
+
+        document.getElementById('sidebarToggle').onclick = () => body.classList.toggle('sidebar-mini');
+        const mobileBtn = document.getElementById('mobileBtn');
+        const overlay = document.getElementById('overlay');
+        mobileBtn.onclick = () => body.classList.add('mobile-open');
+        overlay.onclick = () => body.classList.remove('mobile-open');
+
+        // --- DATA LOGIC ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                document.getElementById('userEmail').value = user.email;
+                await loadUserData(user.uid);
+            } else { window.location.href = "../index.html"; }
+        });
+
+        async function loadUserData(uid) {
+            const roles = [
+                { coll: "master_admin", label: "Master Admin" }, 
+                { coll: "pastors", label: "Pastor" }, 
+                { coll: "shepherds", label: "Shepherd" }
+            ];
+            
+            for (let r of roles) {
+                const snap = await getDoc(doc(db, r.coll, uid));
+                if (snap.exists()) {
+                    currentRoleColl = r.coll; 
+                    const d = snap.data();
+                    // Cache info for email sending
+                    currentUserData = { name: d.full_name, email: auth.currentUser.email, role: r.label };
+                    
+                    document.getElementById('userRole').innerText = r.label;
+                    document.getElementById('fullName').value = d.full_name || "";
+                    if (d.profile_pic) document.getElementById('profileDisplay').src = d.profile_pic;
+                    return;
+                }
+            }
+        }
+
+        // --- PROFILE ACTIONS ---
+        document.getElementById('fileInput').onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = (event) => document.getElementById('profileDisplay').src = event.target.result;
+                reader.readAsDataURL(file);
+            }
+        };
+
+        document.getElementById('saveProfile').onclick = async () => {
+            const btn = document.getElementById('saveProfile');
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            const uid = auth.currentUser.uid;
+            let updateData = { full_name: document.getElementById('fullName').value };
+
+            try {
+                if (selectedFile) {
+                    const fileRef = ref(storage, `profiles/${uid}`);
+                    await uploadBytes(fileRef, selectedFile);
+                    updateData.profile_pic = await getDownloadURL(fileRef);
+                }
+                await updateDoc(doc(db, currentRoleColl, uid), updateData);
+                alert("Profile updated successfully!");
+                // Update local cache
+                currentUserData.name = updateData.full_name;
+            } catch (e) { alert("Error: " + e.message); }
+            finally { btn.disabled = false; btn.innerText = "Update Profile"; }
+        };
+
+        document.getElementById('backNav').onclick = async (e) => {
+            e.preventDefault();
+            const uid = auth.currentUser.uid;
+            const adminSnap = await getDoc(doc(db, "master_admin", uid));
+            if (adminSnap.exists()) { window.location.href = "../admin/index.html"; return; }
+            const pastorSnap = await getDoc(doc(db, "pastors", uid));
+            if (pastorSnap.exists()) { window.location.href = "../pastor/index.html"; return; }
+            window.location.href = "../shepherd/index.html";
+        };
+
+        document.getElementById('resetPass').onclick = async () => {
+            if (confirm("Send password reset link to your email?")) {
+                try {
+                    await sendPasswordResetEmail(auth, auth.currentUser.email);
+                    alert("Reset email sent! Check your inbox.");
+                } catch (e) { alert(e.message); }
+            }
+        };
+
+        // --- SUPPORT MODAL LOGIC ---
+        const modal = document.getElementById('supportModal');
+        const openBtn = document.getElementById('contactSupportBtn');
+        const closeBtn = document.getElementById('closeSupport');
+
+        openBtn.onclick = () => modal.style.display = "flex";
+        closeBtn.onclick = () => modal.style.display = "none";
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+
+        document.getElementById('supportForm').onsubmit = function(event) {
+            event.preventDefault();
+            const btn = document.getElementById('sendSupportBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+            btn.disabled = true;
+
+            const templateParams = {
+                user_name: currentUserData.name,
+                user_email: currentUserData.email,
+                user_role: currentUserData.role,
+                subject: document.getElementById('supportSubject').value,
+                message: document.getElementById('supportMessage').value,
+                to_email: 'jewelsinthepalace2@gmail.com'
+            };
+
+            emailjs.send("service_vzxws9f", "template_buctifq", templateParams)
+                .then(function() {
+                    alert("Thank you for your feedback! We will get back to you shortly.");
+                    modal.style.display = "none";
+                    document.getElementById('supportForm').reset();
+                    btn.innerText = "Send Message";
+                    btn.disabled = false;
+                }, function(error) {
+                    alert("Failed to send: " + JSON.stringify(error));
+                    btn.innerText = "Send Message";
+                    btn.disabled = false;
+                });
+        };
+
+        document.getElementById('logoutBtn').onclick = (e) => {
+            e.preventDefault();
+            signOut(auth).then(() => window.location.href="/index.html");
+        };
+    </script>
+</body>
+</html>

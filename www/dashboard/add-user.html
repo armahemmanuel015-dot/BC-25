@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Staff Hierarchy | ShepherdNet</title>
+    
+    <link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <style>
+        /* --- APP THEME --- */
+        :root {
+            --gold-primary: #F2A20C;
+            --gold-dark: #BF9C34;
+            --bg: #0f172a;
+            --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --sidebar-width: 260px;
+            --sidebar-mini: 80px;
+            --danger: #ff4b5c;
+            --success: #00ff88;
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --glass: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s;
+        }
+
+        /* --- SIDEBAR --- */
+        nav {
+            width: var(--sidebar-width);
+            background: var(--glass);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+        }
+
+        body.sidebar-mini nav { width: var(--sidebar-mini); padding: 30px 15px; }
+        body.sidebar-mini .profile-info, 
+        body.sidebar-mini nav a span:last-child, 
+        body.sidebar-mini .nav-label { display: none; }
+        body.sidebar-mini .logo-text { display: none; }
+        body.sidebar-mini .menu-toggle i { transform: rotate(180deg); }
+
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; color: var(--gold-primary); font-weight: 700; font-size: 1.2rem; white-space: nowrap; overflow: hidden; }
+        .logo-icon { width: 35px; height: 35px; object-fit: contain; }
+
+        nav a {
+            display: flex; align-items: center; gap: 15px;
+            color: var(--text-dim); text-decoration: none;
+            padding: 12px 15px; border-radius: 12px;
+            margin-bottom: 5px; transition: 0.2s; font-size: 0.9rem; font-weight: 500;
+            white-space: nowrap; position: relative;
+        }
+        nav a:hover, nav a.active { background: rgba(242, 162, 12, 0.1); color: var(--gold-primary); }
+        nav a i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            flex: 1; padding: 40px;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+            max-width: 1000px;
+        }
+        body.sidebar-mini main { margin-left: var(--sidebar-mini); }
+
+        /* --- HEADER & SEARCH --- */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
+        h1 { font-size: 1.5rem; font-weight: 600; margin: 0; color: var(--gold-primary); }
+        
+        .search-bar {
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 12px 20px; border-radius: 30px; width: 100%; max-width: 400px;
+            color: var(--text-main); outline: none; font-family: inherit;
+            transition: 0.3s;
+        }
+        .search-bar:focus { border-color: var(--gold-primary); box-shadow: 0 0 15px rgba(242, 162, 12, 0.1); }
+
+        /* --- HIERARCHY TREE CSS --- */
+        .tree-container { padding-bottom: 80px; }
+        
+        .node-group { 
+            padding-left: 24px; 
+            border-left: 2px solid rgba(255,255,255,0.1); 
+            margin-left: 10px;
+            transition: all 0.3s;
+        }
+        .collapsed { display: none; }
+
+        .row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 18px; margin-top: 8px;
+            background: var(--glass); border: 1px solid var(--border);
+            border-radius: 12px; transition: 0.2s;
+            position: relative;
+        }
+        .row:hover { border-color: var(--gold-primary); transform: translateX(5px); }
+        
+        /* Connecting Line visual */
+        .row::before {
+            content: ''; position: absolute; left: -26px; top: 50%;
+            width: 24px; height: 2px; background: rgba(255,255,255,0.1);
+        }
+        
+        /* Root Node (Master) */
+        .row-master { border-left: 4px solid var(--gold-primary); background: rgba(242, 162, 12, 0.05); }
+        .row-master::before { display: none; } 
+        
+        /* Pastor Node */
+        .row-pastor { border-left: 4px solid #4facfe; }
+        
+        /* Shepherd Node */
+        .row-shepherd { border-left: 4px solid var(--success); }
+
+        .user-info { display: flex; align-items: center; gap: 10px; flex: 1; }
+        .toggle-icon { font-size: 0.8rem; color: var(--text-dim); transition: 0.3s; width: 20px; text-align: center; cursor: pointer; }
+        .rotated { transform: rotate(90deg); color: var(--gold-primary); }
+
+        .role-badge { font-size: 0.6rem; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 700; }
+        .rb-master { background: var(--gold-primary); color: #000; }
+        .rb-pastor { background: #4facfe; color: #000; }
+        .rb-shepherd { background: var(--success); color: #000; }
+
+        .del-btn { background: none; border: none; color: var(--danger); opacity: 0.4; cursor: pointer; transition: 0.2s; padding: 5px; }
+        .del-btn:hover { opacity: 1; transform: scale(1.1); }
+
+        .clickable-name { cursor: pointer; font-weight: 600; text-decoration: none; color: inherit; }
+        .clickable-name:hover { text-decoration: underline; color: var(--gold-primary); }
+
+        /* --- FAB & MODAL --- */
+        .fab {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 60px; height: 60px; border-radius: 50%;
+            background: var(--gold-primary); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; box-shadow: 0 5px 20px rgba(242, 162, 12, 0.4);
+            cursor: pointer; z-index: 100; transition: 0.3s; border: none;
+        }
+        .fab:hover { transform: scale(1.1); }
+
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px); z-index: 2000;
+            display: none; align-items: center; justify-content: center;
+        }
+        
+        .modal-card {
+            background: #1e293b; width: 90%; max-width: 600px;
+            padding: 30px; border-radius: 24px; border: 1px solid var(--border);
+            position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            max-height: 90vh; overflow-y: auto;
+        }
+        
+        .close-modal { position: absolute; top: 20px; right: 20px; font-size: 1.2rem; cursor: pointer; color: var(--text-dim); }
+
+        /* Form */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .full-width { grid-column: span 2; }
+        
+        label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 5px; display: block; letter-spacing: 1px; }
+        input, select {
+            width: 100%; padding: 12px; background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border); border-radius: 10px;
+            color: #fff; font-family: inherit; outline: none;
+        }
+        input:focus, select:focus { border-color: var(--gold-primary); }
+
+        .btn-submit {
+            width: 100%; padding: 15px; margin-top: 20px;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold-primary));
+            border: none; border-radius: 12px; font-weight: 600; cursor: pointer;
+            color: #fff; font-size: 1rem;
+        }
+
+        /* Sidebar Toggle */
+        .menu-toggle {
+            position: absolute; right: -15px; top: 35px; width: 30px; height: 30px;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: var(--gold-primary); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1100;
+        }
+
+        .mobile-btn { display: none; position: fixed; top: 20px; right: 20px; z-index: 2000; background: var(--gold-primary); color: #fff; width: 45px; height: 45px; border-radius: 50%; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 900; opacity: 0; pointer-events: none; transition: 0.3s; }
+        body.mobile-open .overlay { opacity: 1; pointer-events: auto; }
+
+        @media (max-width: 768px) {
+            nav { transform: translateX(-100%); width: 260px !important; }
+            body.mobile-open nav { transform: translateX(0); }
+            main { margin-left: 0 !important; padding: 100px 20px 80px 20px; }
+            .menu-toggle { display: none; }
+            .mobile-btn { display: flex; }
+            body.sidebar-mini nav { width: 260px; } 
+            body.sidebar-mini .nav-label, body.sidebar-mini .logo-text, body.sidebar-mini nav a span:last-child { display: inline; }
+            .node-group { padding-left: 10px; margin-left: 5px; } /* Tighter tree on mobile */
+        }
+    </style>
+</head>
+<body class="sidebar-mini">
+
+    <div class="overlay" id="overlay"></div>
+    <div class="mobile-btn" id="mobileBtn"><i class="fa-solid fa-bars"></i></div>
+
+    <nav id="sidebar">
+        <div class="menu-toggle" id="sidebarToggle"><i class="fa-solid fa-chevron-left"></i></div>
+
+        <div class="logo-area">
+            <img src="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d" class="logo-icon">
+            <span class="logo-text">ShepherdNet</span>
+        </div>
+
+        <a href="#" id="dashLink">
+            <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
+        </a>
+       
+        
+         
+        <a href="#" class="active"><i class="fa-solid fa-sitemap"></i> <span>Hierarchy</span></a>
+        
+        <div style="flex-grow:1"></div>
+        
+        <a href="#" id="themeToggle"><i class="fa-solid fa-moon"></i> <span>Theme</span></a>
+        <a href="#" id="logoutBtn" style="color:var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> <span>Sign Out</span></a>
+    </nav>
+
+    <main>
+        <header>
+            <h1><i class="fa-solid fa-users-gear"></i> Staff Management</h1>
+            <input type="text" id="treeSearch" class="search-bar" placeholder="Search staff..." onkeyup="filterTree()">
+        </header>
+
+        <p style="font-size:0.8rem; opacity:0.6; margin-bottom:20px;" id="chapelInfo">Loading Structure...</p>
+
+        <div id="hierarchyTree" class="tree-container">
+            </div>
+    </main>
+
+    <button class="fab" onclick="toggleForm(true)"><i class="fa-solid fa-user-plus"></i></button>
+
+    <div class="modal-overlay" id="formOverlay">
+        <div class="modal-card">
+            <span class="close-modal" onclick="toggleForm(false)"><i class="fa-solid fa-xmark"></i></span>
+            <h2 style="color:var(--gold-primary); margin-top:0;">Deploy Staff</h2>
+            <p style="font-size:0.8rem; opacity:0.6; margin-bottom:20px;">Create credentials for a new leader.</p>
+            
+            <form id="signupForm">
+                <div class="form-grid">
+                    <div class="full-width">
+                        <label>Role Assignment</label>
+                        <select id="role" required>
+                            <option value="shepherds">Shepherd</option>
+                            <option value="pastors">Pastor</option>
+                        </select>
+                    </div>
+                    <div class="full-width">
+                        <label>Full Name</label>
+                        <input type="text" id="fullName" placeholder="e.g. John Doe" required>
+                    </div>
+                    <div>
+                        <label>Gender</label>
+                        <select id="gender"><option value="Male">Male</option><option value="Female">Female</option></select>
+                    </div>
+                    <div>
+                        <label>Date of Birth</label>
+                        <input type="date" id="dob" required>
+                    </div>
+                    <div class="full-width">
+                        <label>Contact Phone</label>
+                        <input type="tel" id="contact" placeholder="020..." required>
+                    </div>
+                    <div class="full-width">
+                        <label>System Email</label>
+                        <input type="email" id="email" placeholder="user@shepherdnet.com" required>
+                    </div>
+                    
+                    <div class="full-width">
+                        <label>Occupation / Job</label>
+                        <input type="text" id="job" placeholder="e.g. Doctor">
+                    </div>
+                    <div>
+                        <label>Course</label>
+                        <input type="text" id="course" placeholder="e.g. Law">
+                    </div>
+                    <div>
+                        <label>Level</label>
+                        <input type="text" id="level" placeholder="e.g. Alumnus">
+                    </div>
+
+                    <div class="full-width">
+                        <label>Default Password</label>
+                        <input type="password" id="password" placeholder="Min. 6 characters" required minlength="6">
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" id="submitBtn">Deploy to Network</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, deleteDoc, getDocs, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Initialize EmailJS
+        (function() { emailjs.init("hbLNGNgE4WvbIYFFr"); })();
+
+        const firebaseConfig = { apiKey: "AIzaSyCBv60eRCO0e4dFBMKGKnIATouxTuk1Bcc", authDomain: "fob-database-139d1.firebaseapp.com", projectId: "fob-database-139d1", storageBucket: "fob-database-139d1.firebasestorage.app", appId: "1:375165731354:web:b5fa57dcb2d71ee0d8c7a3" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app, "fobrealdbase");
+        const auth = getAuth(app);
+
+        // --- THEME & UI LOGIC ---
+        const body = document.body;
+        const themeBtn = document.getElementById('themeToggle');
+        const themeIcon = themeBtn.querySelector('i');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeIcon.className = savedTheme === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+
+        themeBtn.onclick = (e) => {
+            e.preventDefault();
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            themeIcon.className = next === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        };
+
+        document.getElementById('sidebarToggle').onclick = () => body.classList.toggle('sidebar-mini');
+        const mobileBtn = document.getElementById('mobileBtn');
+        const overlay = document.getElementById('overlay');
+        mobileBtn.onclick = () => body.classList.add('mobile-open');
+        overlay.onclick = () => body.classList.remove('mobile-open');
+
+        // --- HIERARCHY LOGIC ---
+        let loggedInUserUID = "";
+        let autoChapel = "undefined";
+
+        async function getMyChapel(uid) {
+            const pDoc = await getDoc(doc(db, "pastors", uid));
+            if (pDoc.exists() && pDoc.data().chapel_name) return pDoc.data().chapel_name;
+            
+            const mDoc = await getDoc(doc(db, "master_admin", uid));
+            if (mDoc.exists() && mDoc.data().chapel_name) return mDoc.data().chapel_name;
+            
+            return "General Assembly";
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) { 
+                loggedInUserUID = user.uid; 
+                autoChapel = await getMyChapel(user.uid);
+                document.getElementById('chapelInfo').innerText = `Active Chapel Scope: ${autoChapel}`;
+                
+                // Set Back Link based on role check
+                const adminCheck = await getDoc(doc(db, "master_admin", user.uid));
+                if(adminCheck.exists()) document.getElementById('dashLink').href = "../admin/index.html";
+                else document.getElementById('dashLink').href = "../pastor/index.html";
+
+                loadHierarchy(); 
+            } else { window.location.href = "../index.html"; }
+        });
+
+        window.toggleForm = (show) => { document.getElementById('formOverlay').style.display = show ? 'flex' : 'none'; };
+        
+        window.toggleNode = (id, iconId) => {
+            const g = document.getElementById(`group-${id}`);
+            const i = document.getElementById(iconId);
+            if(g) g.classList.toggle('collapsed');
+            if(i) i.classList.toggle('rotated');
+        };
+
+        async function loadHierarchy() {
+            const container = document.getElementById('hierarchyTree');
+            container.innerHTML = '<p style="text-align:center; opacity:0.5;"><i class="fa-solid fa-spinner fa-spin"></i> Building Tree...</p>';
+
+            const [mSnap, pSnap, sSnap] = await Promise.all([
+                getDocs(collection(db, "master_admin")),
+                getDocs(collection(db, "pastors")),
+                getDocs(collection(db, "shepherds"))
+            ]);
+
+            const masters = mSnap.docs.map(d => ({id: d.id, ...d.data()}));
+            const pastors = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
+            const shepherds = sSnap.docs.map(d => ({id: d.id, ...d.data()}));
+
+            function buildNode(parentId) {
+                const subPastors = pastors.filter(p => p.pastorId === parentId);
+                const subShepherds = shepherds.filter(s => s.pastorId === parentId);
+
+                if (subPastors.length === 0 && subShepherds.length === 0) return "";
+
+                let html = `<div class="node-group collapsed" id="group-${parentId}">`;
+
+                subPastors.forEach(p => {
+                    const hasKids = shepherds.some(s => s.pastorId === p.id);
+                    html += `
+                        <div class="row row-pastor">
+                            <div class="user-info">
+                                <span class="toggle-icon" id="icon-${p.id}" onclick="toggleNode('${p.id}', 'icon-${p.id}')">
+                                    ${hasKids ? '<i class="fa-solid fa-chevron-right"></i>' : '•'}
+                                </span>
+                                <span class="role-badge rb-pastor">Pastor</span>
+                                <b class="clickable-name" onclick="window.location.href='staff-profile.html?id=${p.id}&role=pastors'">${p.full_name}</b>
+                            </div>
+                            <button class="del-btn" onclick="event.stopPropagation(); deleteUser('pastors', '${p.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>${buildNode(p.id)}`;
+                });
+
+                subShepherds.forEach(s => {
+                    html += `
+                        <div class="row row-shepherd">
+                            <div class="user-info">
+                                <span class="toggle-icon">•</span>
+                                <span class="role-badge rb-shepherd">Shepherd</span>
+                                <span class="clickable-name" onclick="window.location.href='staff-profile.html?id=${s.id}&role=shepherds'">${s.full_name}</span>
+                            </div>
+                            <button class="del-btn" onclick="event.stopPropagation(); deleteUser('shepherds', '${s.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>`;
+                });
+
+                return html + `</div>`;
+            }
+
+            let treeHtml = "";
+            masters.forEach(m => {
+                treeHtml += `
+                    <div class="row row-master">
+                        <div class="user-info">
+                            <span class="toggle-icon" id="icon-${m.id}" onclick="toggleNode('${m.id}', 'icon-${m.id}')">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </span>
+                            <span class="role-badge rb-master">Master Admin</span>
+                            <b>${m.full_name}</b>
+                        </div>
+                    </div>${buildNode(m.id)}`;
+            });
+
+            // Handle Orphans
+            const topPastors = pastors.filter(p => !p.pastorId || (!masters.some(m => m.id === p.pastorId)));
+            topPastors.forEach(tp => {
+                treeHtml += `
+                    <div class="row row-pastor" style="border-left: 4px solid #4facfe;">
+                        <div class="user-info">
+                            <span class="toggle-icon" id="icon-${tp.id}" onclick="toggleNode('${tp.id}', 'icon-${tp.id}')">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </span>
+                            <span class="role-badge rb-pastor">Senior Pastor</span>
+                            <b class="clickable-name" onclick="window.location.href='staff-profile.html?id=${tp.id}&role=pastors'">${tp.full_name}</b>
+                        </div>
+                        <button class="del-btn" onclick="event.stopPropagation(); deleteUser('pastors', '${tp.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>${buildNode(tp.id)}`;
+            });
+
+            container.innerHTML = treeHtml || "<p style='text-align:center; padding:40px; opacity:0.5;'>No staff hierarchy found.</p>";
+        }
+
+        window.filterTree = () => {
+            const q = document.getElementById('treeSearch').value.toLowerCase();
+            document.querySelectorAll('.row').forEach(row => {
+                const match = row.innerText.toLowerCase().includes(q);
+                row.style.display = match ? "flex" : "none";
+                if(q.length > 1 && match) {
+                    let parent = row.nextElementSibling; 
+                    document.querySelectorAll('.node-group').forEach(g => g.classList.remove('collapsed'));
+                }
+            });
+            if(q.length === 0) {
+                document.querySelectorAll('.node-group').forEach(g => g.classList.add('collapsed'));
+                document.querySelectorAll('.row').forEach(r => r.style.display = "flex");
+            }
+        };
+
+        window.deleteUser = async (coll, id) => {
+            if (confirm("Permanently delete this staff member? This cannot be undone.")) {
+                await deleteDoc(doc(db, coll, id));
+                loadHierarchy();
+            }
+        };
+
+        document.getElementById('signupForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deploying...';
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const col = document.getElementById('role').value;
+            
+            // Secondary App to prevent Logout
+            const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+            const secondaryAuth = getAuth(secondaryApp);
+
+            try {
+                const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+                await setDoc(doc(db, col, cred.user.uid), {
+                    full_name: document.getElementById('fullName').value,
+                    gender: document.getElementById('gender').value,
+                    dob: document.getElementById('dob').value,
+                    contact: document.getElementById('contact').value,
+                    email: email,
+                    // NEW FIELDS
+                    job: document.getElementById('job').value,
+                    course: document.getElementById('course').value,
+                    level: document.getElementById('level').value,
+                    
+                    role: col.slice(0, -1),
+                    pastorId: loggedInUserUID,
+                    chapel_name: autoChapel,
+                    created_at: serverTimestamp()
+                });
+                
+                // EmailJS (Silent Fail safe)
+                try {
+                    await emailjs.send("service_vzxws9f", "template_buctifq", {
+                        full_name: document.getElementById('fullName').value,
+                        role: col.slice(0, -1), email: email, password: password
+                    });
+                } catch(e) { console.log("Email failed, user created."); }
+
+                await signOut(secondaryAuth);
+                await deleteApp(secondaryApp);
+                
+                toggleForm(false); 
+                loadHierarchy(); 
+                document.getElementById('signupForm').reset();
+                alert("Staff Deployed Successfully!");
+
+            } catch (err) { alert(err.message); }
+            finally { btn.disabled = false; btn.innerText = "Deploy to Network"; }
+        };
+
+        document.getElementById('logoutBtn').onclick = (e) => {
+            e.preventDefault();
+            signOut(auth).then(() => window.location.href="/index.html");
+        };
+    </script>
+</body>
+</html>

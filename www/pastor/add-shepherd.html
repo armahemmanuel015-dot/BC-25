@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Add Staff | ShepherdNet</title>
+    
+    <link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <style>
+        /* --- APP THEME --- */
+        :root {
+            --gold-primary: #F2A20C;
+            --gold-dark: #BF9C34;
+            --bg: #0f172a;
+            --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --success: #00ff88;
+            --danger: #ff4b5c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex; justify-content: center; align-items: flex-start;
+            padding: 40px 20px;
+        }
+
+        /* --- BACKGROUNDS --- */
+        .bg-image {
+            position: fixed; inset: 0;
+            background: url('https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+            opacity: 0.1; z-index: -2; filter: sepia(30%);
+        }
+        .bg-overlay {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, transparent 0%, var(--bg) 90%);
+            z-index: -1;
+        }
+
+        /* --- CARD CONTAINER --- */
+        .container {
+            width: 100%; max-width: 600px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 35px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        /* Header */
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
+        .back-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            width: 40px; height: 40px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-main); cursor: pointer; transition: 0.2s;
+        }
+        .back-btn:hover { border-color: var(--gold-primary); color: var(--gold-primary); }
+        h1 { font-size: 1.2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--gold-primary); }
+
+        /* Form Grid */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .full-width { grid-column: span 2; }
+
+        .input-group { margin-bottom: 5px; }
+        label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 5px; display: block; font-weight: 600; letter-spacing: 0.5px; }
+        
+        input, select {
+            width: 100%; padding: 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-main); font-size: 0.95rem; font-family: inherit;
+            outline: none; transition: 0.3s;
+            appearance: none;
+        }
+        input:focus, select:focus { border-color: var(--gold-primary); background: rgba(242, 162, 12, 0.05); }
+        select option { background: #1e293b; color: white; }
+
+        .btn-submit {
+            width: 100%; padding: 16px; margin-top: 30px;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold-primary));
+            border: none; border-radius: 12px;
+            color: white; font-weight: 700; font-size: 1rem;
+            cursor: pointer; box-shadow: 0 5px 20px rgba(242, 162, 12, 0.3);
+            transition: 0.2s;
+        }
+        .btn-submit:disabled { opacity: 0.6; cursor: wait; }
+        .btn-submit:active { transform: scale(0.98); }
+
+        /* Toast Notification */
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; pointer-events: none; }
+        .toast {
+            background: rgba(15, 23, 42, 0.95); border: 1px solid var(--border);
+            border-left: 4px solid var(--gold-primary); color: white;
+            padding: 15px 20px; border-radius: 12px; margin-bottom: 10px;
+            display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+            animation: slideIn 0.3s ease-out forwards; pointer-events: auto;
+        }
+        .toast.error { border-left-color: var(--danger); }
+        .toast i { font-size: 1.2rem; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="bg-image"></div>
+    <div class="bg-overlay"></div>
+    <div id="toast-container"></div>
+
+    <div class="container">
+        <div class="header">
+            <div class="back-btn" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i></div>
+            <h1>Deploy Staff</h1>
+            <div style="width:40px;"></div>
+        </div>
+
+        <form id="signupForm">
+            <div class="form-grid">
+                <div class="full-width input-group">
+                    <label>Role Assignment</label>
+                    <select id="role" required>
+                        <option value="shepherds">Shepherd</option>
+                        
+                    </select>
+                </div>
+
+                <div class="full-width input-group">
+                    <label>Full Name</label>
+                    <input type="text" id="fullName" placeholder="e.g. John Doe" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Gender</label>
+                    <select id="gender" required>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Date of Birth</label>
+                    <input type="date" id="dob" required>
+                </div>
+
+                <div class="full-width input-group">
+                    <label>Contact Phone</label>
+                    <input type="tel" id="contact" placeholder="024..." required>
+                </div>
+
+                <div class="full-width input-group">
+                    <label>System Email</label>
+                    <input type="email" id="email" placeholder="user@shepherdnet.com" required>
+                </div>
+
+                <div class="input-group">
+                    <label>Occupation</label>
+                    <input type="text" id="job" placeholder="e.g. Doctor">
+                </div>
+
+                <div class="input-group">
+                    <label>Level / Status</label>
+                    <input type="text" id="level" placeholder="e.g. Alumnus">
+                </div>
+
+                <div class="full-width input-group">
+                    <label>Course of Study</label>
+                    <input type="text" id="course" placeholder="e.g. Biochemistry">
+                </div>
+
+                <div class="full-width input-group">
+                    <label>Initial Password</label>
+                    <input type="password" id="password" placeholder="Min. 6 characters" required minlength="6">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">Deploy to Network</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        (function() { emailjs.init("hbLNGNgE4WvbIYFFr"); })();
+
+        const firebaseConfig = { apiKey: "AIzaSyCBv60eRCO0e4dFBMKGKnIATouxTuk1Bcc", authDomain: "fob-database-139d1.firebaseapp.com", projectId: "fob-database-139d1", storageBucket: "fob-database-139d1.firebasestorage.app", appId: "1:375165731354:web:b5fa57dcb2d71ee0d8c7a3" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app, "fobrealdbase");
+
+        let loggedInUserUID = "";
+        let autoChapel = "undefined";
+
+        // --- TOAST NOTIFICATION ---
+        function showToast(msg, type="success") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fa-solid ${type==='success' ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i> <span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // --- FETCH CHAPEL ---
+        async function fetchMyChapel(uid) {
+            const pDoc = await getDoc(doc(db, "pastors", uid));
+            if (pDoc.exists() && pDoc.data().chapel_name) return pDoc.data().chapel_name;
+            
+            const mDoc = await getDoc(doc(db, "master_admin", uid));
+            if (mDoc.exists() && mDoc.data().chapel_name) return mDoc.data().chapel_name;
+            
+            return "undefined";
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                loggedInUserUID = user.uid;
+                autoChapel = await fetchMyChapel(user.uid);
+            } else {
+                window.location.href = "../index.html";
+            }
+        });
+
+        document.getElementById('signupForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deploying...';
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const fullName = document.getElementById('fullName').value;
+            const collectionName = document.getElementById('role').value; 
+            const roleString = collectionName.slice(0, -1); 
+
+            // Secondary App for Auth
+            const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+            const secondaryAuth = getAuth(secondaryApp);
+
+            try {
+                const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+                
+                await setDoc(doc(db, collectionName, cred.user.uid), {
+                    full_name: fullName,
+                    gender: document.getElementById('gender').value,
+                    dob: document.getElementById('dob').value,
+                    contact: document.getElementById('contact').value,
+                    email: email,
+                    job: document.getElementById('job').value,
+                    course: document.getElementById('course').value,
+                    level: document.getElementById('level').value,
+                    role: roleString,
+                    pastorId: loggedInUserUID,
+                    chapel_name: autoChapel,
+                    created_at: serverTimestamp()
+                });
+
+                // Silent Email (Optional)
+                try {
+                    await emailjs.send("service_vzxws9f", "template_buctifq", {
+                        full_name: fullName, role: roleString, email: email, 
+                        password: password, chapel_name: autoChapel
+                    });
+                } catch(e) { console.log("Email skipped"); }
+
+                await signOut(secondaryAuth);
+                await deleteApp(secondaryApp);
+
+                showToast(`Success! ${fullName} added to the network.`);
+                document.getElementById('signupForm').reset();
+
+            } catch (error) {
+                showToast(error.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Deploy to Network";
+            }
+        };
+    </script>
+</body>
+</html>

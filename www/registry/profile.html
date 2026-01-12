@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Member Attendance | ShepherdNet</title>
+    
+    <link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- APP THEME --- */
+        :root {
+            --gold-primary: #F2A20C;
+            --gold-dark: #BF9C34;
+            --bg: #0f172a;
+            --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --sidebar-width: 260px;
+            --sidebar-mini: 80px;
+            --danger: #ff4b5c;
+            --success: #00ff88;
+            --neutral: #64748b;
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --glass: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s;
+        }
+
+        /* --- SIDEBAR --- */
+        nav {
+            width: var(--sidebar-width);
+            background: var(--glass);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+        }
+
+        body.sidebar-mini nav { width: var(--sidebar-mini); padding: 30px 15px; }
+        body.sidebar-mini .profile-info, 
+        body.sidebar-mini nav a span:last-child, 
+        body.sidebar-mini .nav-label { display: none; }
+        body.sidebar-mini .logo-text { display: none; }
+        body.sidebar-mini .menu-toggle i { transform: rotate(180deg); }
+
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; color: var(--gold-primary); font-weight: 700; font-size: 1.2rem; white-space: nowrap; overflow: hidden; }
+        .logo-icon { width: 35px; height: 35px; object-fit: contain; }
+
+        nav a {
+            display: flex; align-items: center; gap: 15px;
+            color: var(--text-dim); text-decoration: none;
+            padding: 12px 15px; border-radius: 12px;
+            margin-bottom: 5px; transition: 0.2s; font-size: 0.9rem; font-weight: 500;
+            white-space: nowrap; position: relative;
+        }
+        nav a:hover, nav a.active { background: rgba(242, 162, 12, 0.1); color: var(--gold-primary); }
+        nav a i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            flex: 1; padding: 40px;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+            max-width: 600px; margin: 0 auto;
+            width: 100%;
+        }
+        body.sidebar-mini main { margin-left: auto; margin-right: auto; }
+
+        /* --- HEADER CARD --- */
+        .profile-card {
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 30px; border-radius: 24px; text-align: center; margin-bottom: 20px;
+        }
+        .profile-img { 
+            width: 100px; height: 100px; border-radius: 50%; object-fit: cover; 
+            border: 3px solid var(--gold-primary); margin-bottom: 15px; background: #334155;
+        }
+        h1 { font-size: 1.4rem; margin: 0 0 5px 0; font-weight: 600; }
+        p.role { font-size: 0.8rem; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- FILTERS --- */
+        .filter-box select {
+            width: 100%; padding: 12px; border-radius: 12px;
+            background: var(--glass); border: 1px solid var(--border);
+            color: var(--text-main); outline: none; font-family: inherit; margin-bottom: 20px;
+        }
+        .filter-box select option { background: var(--bg); }
+
+        /* --- STATS GRID --- */
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-card {
+            background: var(--glass); padding: 15px; border-radius: 16px;
+            text-align: center; border: 1px solid var(--border);
+        }
+        .stat-val { display: block; font-size: 1.5rem; font-weight: 700; color: var(--gold-primary); }
+        .stat-lab { font-size: 0.7rem; text-transform: uppercase; opacity: 0.6; }
+
+        /* --- CHART --- */
+        .chart-box {
+            background: var(--glass); padding: 20px; border-radius: 20px;
+            border: 1px solid var(--border); margin-bottom: 20px; height: 200px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* --- HISTORY LIST --- */
+        .history-list {
+            background: var(--glass); padding: 20px; border-radius: 24px;
+            border: 1px solid var(--border);
+        }
+        
+        .history-item {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: 15px 0; border-bottom: 1px solid var(--border);
+        }
+        .history-item:last-child { border-bottom: none; }
+
+        .active-event {
+            background: rgba(0, 255, 136, 0.05); border: 1px solid var(--success);
+            padding: 15px; border-radius: 12px; margin-bottom: 10px;
+        }
+
+        .service-info span { font-weight: 600; font-size: 0.95rem; }
+        .service-info small { display: block; font-size: 0.75rem; opacity: 0.6; margin-top: 4px; }
+        .note-preview { font-size: 0.75rem; color: var(--gold-primary); margin-top: 5px; font-style: italic; display: block; }
+
+        .status-area { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .status-pill {
+            padding: 4px 10px; border-radius: 6px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+        }
+        .pill-present { background: rgba(0, 255, 136, 0.15); color: var(--success); }
+        .pill-absent { background: rgba(255, 75, 92, 0.15); color: var(--danger); }
+        .pill-neutral { background: rgba(100, 116, 139, 0.15); color: var(--neutral); }
+
+        .action-group { display: flex; gap: 6px; }
+        .btn-action {
+            padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+            cursor: pointer; font-size: 0.75rem; font-weight: 700; transition: 0.2s;
+            background: rgba(255,255,255,0.05); color: var(--text-main);
+        }
+        .btn-action:disabled { opacity: 0.3; cursor: not-allowed; }
+        
+        .btn-p.active { background: var(--success); color: #000; border-color: var(--success); }
+        .btn-a.active { background: var(--danger); color: #fff; border-color: var(--danger); }
+        
+        .note-btn { background: var(--glass); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 8px; cursor: pointer; }
+
+        /* --- MODAL --- */
+        .modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px); z-index: 2000; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: #1e293b; padding: 25px; border-radius: 20px;
+            width: 90%; max-width: 400px; border: 1px solid var(--border);
+        }
+        textarea {
+            width: 100%; height: 100px; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+            border-radius: 12px; color: #fff; padding: 12px; margin-bottom: 15px; font-family: inherit;
+        }
+        .btn-save-note { width: 100%; padding: 12px; background: var(--gold-primary); border: none; border-radius: 12px; font-weight: 600; cursor: pointer; color: #000; }
+
+        /* Sidebar Toggle */
+        .menu-toggle {
+            position: absolute; right: -15px; top: 35px; width: 30px; height: 30px;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: var(--gold-primary); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1100;
+        }
+
+        .mobile-btn { display: none; position: fixed; top: 20px; right: 20px; z-index: 2000; background: var(--gold-primary); color: #fff; width: 45px; height: 45px; border-radius: 50%; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 900; opacity: 0; pointer-events: none; transition: 0.3s; }
+        body.mobile-open .overlay { opacity: 1; pointer-events: auto; }
+
+        @media (max-width: 768px) {
+            nav { transform: translateX(-100%); width: 260px !important; }
+            body.mobile-open nav { transform: translateX(0); }
+            main { margin-left: 0 !important; padding: 100px 20px 40px 20px; }
+            .menu-toggle { display: none; }
+            .mobile-btn { display: flex; }
+            body.sidebar-mini nav { width: 260px; } 
+            body.sidebar-mini .nav-label, body.sidebar-mini .logo-text, body.sidebar-mini nav a span:last-child { display: inline; }
+        }
+    </style>
+</head>
+<body class="sidebar-mini">
+
+    <div class="overlay" id="overlay"></div>
+    <div class="mobile-btn" id="mobileBtn"><i class="fa-solid fa-bars"></i></div>
+
+    <nav id="sidebar">
+        <div class="menu-toggle" id="sidebarToggle"><i class="fa-solid fa-chevron-left"></i></div>
+
+        <div class="logo-area">
+            <img src="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d" class="logo-icon">
+            <span class="logo-text">ShepherdNet</span>
+        </div>
+
+        <a href="index.html" class="active"><i class="fa-solid fa-arrow-left"></i> <span>Back to Registry</span></a>
+        
+        <div style="flex-grow:1"></div>
+        
+        <a href="#" id="themeToggle"><i class="fa-solid fa-moon"></i> <span>Theme</span></a>
+        <a href="#" id="logoutBtn" style="color:var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> <span>Sign Out</span></a>
+    </nav>
+
+    <main>
+        <div class="profile-card">
+            <img src="https://via.placeholder.com/100" class="profile-img" id="memberPic">
+            <h1 id="memberName">Loading Profile...</h1>
+            <p id="memberRole" class="role">Member</p>
+        </div>
+
+        <div class="filter-box">
+            <select id="timeFilter">
+                <option value="all">Full 2026 Calendar</option>
+                <optgroup label="2026 Months">
+                    <option value="2026-01">January</option><option value="2026-02">February</option>
+                    <option value="2026-03">March</option><option value="2026-04">April</option>
+                    <option value="2026-05">May</option><option value="2026-06">June</option>
+                    <option value="2026-07">July</option><option value="2026-08">August</option>
+                    <option value="2026-09">September</option><option value="2026-10">October</option>
+                    <option value="2026-11">November</option><option value="2026-12">December</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <span class="stat-val" id="totalPastEvents">0</span>
+                <span class="stat-lab">Services Due</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-val" id="attRate">0%</span>
+                <span class="stat-lab">Attendance Rate</span>
+            </div>
+        </div>
+
+        <div class="chart-box">
+            <canvas id="attendanceChart"></canvas>
+        </div>
+
+        <div id="historyList" class="history-list"></div>
+    </main>
+
+    <div id="noteModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle" style="color:var(--gold-primary); margin:0 0 10px 0;">Add Note</h3>
+            <textarea id="noteInput" placeholder="Reason for absence..."></textarea>
+            <button class="btn-save-note" id="saveNoteBtn">Save Note</button>
+            <button onclick="document.getElementById('noteModal').style.display='none'" style="background:none; border:none; color:gray; width:100%; margin-top:10px; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, query, where, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCBv60eRCO0e4dFBMKGKnIATouxTuk1Bcc", authDomain: "fob-database-139d1.firebaseapp.com", projectId: "fob-database-139d1", storageBucket: "fob-database-139d1.firebasestorage.app", appId: "1:375165731354:web:b5fa57dcb2d71ee0d8c7a3" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app, "fobrealdbase");
+        const auth = getAuth(app);
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const memberId = urlParams.get('id');
+        let myChart = null;
+
+        // --- THEME & UI ---
+        const body = document.body;
+        const themeBtn = document.getElementById('themeToggle');
+        const themeIcon = themeBtn.querySelector('i');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeIcon.className = savedTheme === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+
+        themeBtn.onclick = (e) => {
+            e.preventDefault();
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            themeIcon.className = next === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        };
+
+        document.getElementById('sidebarToggle').onclick = () => body.classList.toggle('sidebar-mini');
+        const mobileBtn = document.getElementById('mobileBtn');
+        const overlay = document.getElementById('overlay');
+        mobileBtn.onclick = () => body.classList.add('mobile-open');
+        overlay.onclick = () => body.classList.remove('mobile-open');
+
+        // --- DATA LOGIC ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) loadFullProfile();
+            else window.location.href = "../index.html";
+        });
+
+        async function loadFullProfile() {
+            if (!memberId) return;
+            const filterValue = document.getElementById('timeFilter').value;
+            const historyDiv = document.getElementById('historyList');
+
+            try {
+                // 1. Member Info
+                const mSnap = await getDoc(doc(db, "members", memberId));
+                if (mSnap.exists()) {
+                    const m = mSnap.data();
+                    document.getElementById('memberName').innerText = m.full_name || `${m.first_name} ${m.last_name}`;
+                    document.getElementById('memberRole').innerText = m.status || "Member";
+                    if(m.photo_url) document.getElementById('memberPic').src = m.photo_url;
+                }
+
+                // 2. Fetch Attendance
+                const attDocs = await getDocs(query(collection(db, "attendance"), where("memberId", "==", memberId)));
+                const attendanceMap = {};
+                attDocs.forEach(d => attendanceMap[d.data().eventId] = d.data());
+
+                // 3. Fetch Events
+                const eventsSnap = await getDocs(query(collection(db, "events"), orderBy("date", "asc")));
+                
+                let presentCount = 0;
+                let pastEventsCount = 0;
+                let listHtml = "";
+                const now = new Date();
+
+                eventsSnap.forEach(evDoc => {
+                    const ev = evDoc.data();
+                    const title = ev.title || ev.name || "Service";
+                    if (title.toLowerCase().includes("dawn prayer")) return;
+
+                    const evDateObj = ev.date && ev.date.toDate ? ev.date.toDate() : new Date(ev.date);
+                    const dateStr = ev.dateString || evDateObj.toISOString().split('T')[0];
+
+                    const attData = attendanceMap[evDoc.id] || {};
+                    const isPresent = attData.status === 'present' || attData.status === 'Present';
+                    const isAbsent = attData.status === 'absent' || attData.status === 'Absent';
+
+                    // Lock Logic
+                    const dayEnd = new Date(evDateObj); dayEnd.setHours(23, 59, 59, 999);
+                    const isOpen = now >= evDateObj && now <= dayEnd;
+                    const isPast = now > dayEnd;
+
+                    if (now >= evDateObj) {
+                        pastEventsCount++;
+                        if (isPresent) presentCount++;
+                    }
+
+                    // Filter
+                    if (filterValue === "all" || dateStr.startsWith(filterValue)) {
+                        let pillClass = "pill-neutral";
+                        let statusLabel = "Wait...";
+                        let opacityStyle = "opacity:0.5";
+                        let highlightClass = "";
+
+                        if (isOpen) {
+                            statusLabel = "Mark Now ⚡";
+                            opacityStyle = "opacity:1";
+                            highlightClass = "active-event";
+                        } else if (isPast) {
+                            statusLabel = "Locked 🔒";
+                        }
+
+                        if (isPresent) { pillClass = "pill-present"; statusLabel = isOpen ? "Present" : "Present"; }
+                        else if (isAbsent) { pillClass = "pill-absent"; statusLabel = isOpen ? "Absent" : "Absent"; }
+
+                        const disabledAttr = !isOpen ? 'disabled' : '';
+
+                        listHtml += `
+                            <div class="history-item ${highlightClass}" style="${opacityStyle}">
+                                <div class="service-info">
+                                    <span>${title}</span>
+                                    <small>${evDateObj.toLocaleDateString()} @ ${evDateObj.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</small>
+                                    ${attData.note ? `<span class="note-preview">📝 ${attData.note}</span>` : ''}
+                                </div>
+                                <div class="status-area">
+                                    <span class="status-pill ${pillClass}">${statusLabel}</span>
+                                    <div class="action-group">
+                                        <button class="btn-action btn-p ${isPresent ? 'active' : ''}" 
+                                            onclick="updateStatus('${evDoc.id}', 'present')" ${disabledAttr}>P</button>
+                                        <button class="btn-action btn-a ${isAbsent ? 'active' : ''}" 
+                                            onclick="updateStatus('${evDoc.id}', 'absent')" ${disabledAttr}>A</button>
+                                        <button class="note-btn" onclick="openNote('${evDoc.id}', '${title.replace(/'/g, "\\'")}', '${(attData.note || "").replace(/'/g, "\\'")}')">💬</button>
+                                    </div>
+                                </div>
+                            </div>`;
+                    }
+                });
+
+                historyDiv.innerHTML = listHtml || "<p style='text-align:center; opacity:0.5; padding:20px;'>No events found.</p>";
+                document.getElementById('totalPastEvents').innerText = pastEventsCount;
+                document.getElementById('attRate').innerText = `${pastEventsCount > 0 ? Math.round((presentCount / pastEventsCount) * 100) : 0}%`;
+                renderChart(presentCount, pastEventsCount - presentCount);
+
+            } catch (error) { console.error(error); }
+        }
+
+        window.updateStatus = async (eventId, newStatus) => {
+            try {
+                await setDoc(doc(db, "attendance", `${memberId}_${eventId}`), { 
+                    status: newStatus, memberId, eventId, lastUpdated: new Date()
+                }, { merge: true });
+                loadFullProfile();
+            } catch (e) { alert(e.message); }
+        };
+
+        function renderChart(present, absent) {
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Present', 'Missed'],
+                    datasets: [{ data: [present, absent], backgroundColor: ['#00ff88', '#ff4b5c'], borderWidth: 0 }]
+                },
+                options: { cutout: '75%', plugins: { legend: { position: 'bottom', labels: { color: '#aaa' } } } }
+            });
+        }
+
+        window.openNote = (id, name, note) => {
+            window.activeEventId = id;
+            document.getElementById('modalTitle').innerText = name;
+            document.getElementById('noteInput').value = note;
+            document.getElementById('noteModal').style.display = 'flex';
+        };
+
+        document.getElementById('saveNoteBtn').onclick = async () => {
+            await setDoc(doc(db, "attendance", `${memberId}_${window.activeEventId}`), { 
+                note: document.getElementById('noteInput').value, memberId, eventId: window.activeEventId 
+            }, { merge: true });
+            document.getElementById('noteModal').style.display = 'none';
+            loadFullProfile();
+        };
+
+        document.getElementById('timeFilter').onchange = () => loadFullProfile();
+
+        document.getElementById('logoutBtn').onclick = (e) => {
+            e.preventDefault();
+            signOut(auth).then(() => window.location.href="../index.html");
+        };
+    </script>
+</body>
+</html>

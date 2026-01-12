@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Manage Events | ShepherdNet</title>
+    
+    <link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- APP THEME --- */
+        :root {
+            --gold-primary: #F2A20C;
+            --gold-dark: #BF9C34;
+            --bg: #0f172a;
+            --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --sidebar-width: 260px;
+            --sidebar-mini: 80px;
+            --danger: #ff4b5c;
+            --success: #00ff88;
+            --input-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --glass: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+            --input-bg: #f1f5f9;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s;
+        }
+
+        /* --- SIDEBAR --- */
+        nav {
+            width: var(--sidebar-width);
+            background: var(--glass);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+        }
+
+        body.sidebar-mini nav { width: var(--sidebar-mini); padding: 30px 15px; }
+        body.sidebar-mini .profile-info, 
+        body.sidebar-mini nav a span:last-child, 
+        body.sidebar-mini .nav-label { display: none; }
+        body.sidebar-mini .logo-text { display: none; }
+        body.sidebar-mini .menu-toggle i { transform: rotate(180deg); }
+
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; color: var(--gold-primary); font-weight: 700; font-size: 1.2rem; white-space: nowrap; overflow: hidden; }
+        .logo-icon { width: 35px; height: 35px; object-fit: contain; }
+
+        nav a {
+            display: flex; align-items: center; gap: 15px;
+            color: var(--text-dim); text-decoration: none;
+            padding: 12px 15px; border-radius: 12px;
+            margin-bottom: 5px; transition: 0.2s; font-size: 0.9rem; font-weight: 500;
+            white-space: nowrap; position: relative;
+        }
+        nav a:hover, nav a.active { background: rgba(242, 162, 12, 0.1); color: var(--gold-primary); }
+        nav a i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            flex: 1; padding: 40px;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+            max-width: 800px; margin: 0 auto;
+            width: 100%;
+        }
+        body.sidebar-mini main { margin-left: auto; margin-right: auto; }
+
+        /* --- CARD STYLE --- */
+        .card {
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 30px; border-radius: 20px; margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h2 { font-size: 1.5rem; font-weight: 600; color: var(--gold-primary); margin: 0 0 5px 0; }
+        p.subtitle { font-size: 0.9rem; opacity: 0.6; margin-bottom: 30px; }
+
+        .section-title {
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
+            color: var(--text-dim); font-weight: 700; margin-bottom: 15px; display: block;
+            border-bottom: 1px solid var(--border); padding-bottom: 5px;
+        }
+
+        /* Inputs */
+        input, select {
+            width: 100%; padding: 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-main); font-size: 0.95rem; font-family: inherit;
+            outline: none; transition: 0.3s;
+            margin-bottom: 15px; appearance: none;
+        }
+        input:focus, select:focus { border-color: var(--gold-primary); background: rgba(242, 162, 12, 0.05); }
+        select option { background: #1e293b; color: white; }
+
+        .input-row { display: flex; gap: 15px; }
+
+        /* Buttons */
+        .btn {
+            width: 100%; padding: 16px; border-radius: 12px; border: none;
+            font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn:active { transform: scale(0.98); }
+
+        .btn-special {
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold-primary));
+            color: #fff; box-shadow: 0 5px 20px rgba(242, 162, 12, 0.3);
+        }
+
+        .btn-danger {
+            background: rgba(255, 75, 92, 0.1); border: 1px solid var(--danger);
+            color: var(--danger); margin-top: 20px;
+        }
+        .btn-danger:hover { background: rgba(255, 75, 92, 0.2); }
+        .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(255,255,255,0.05); border-left: 3px solid var(--gold-primary);
+            padding: 15px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 20px; line-height: 1.5;
+        }
+        .info-box.danger { border-left-color: var(--danger); background: rgba(255, 75, 92, 0.05); }
+
+        /* Sidebar Toggle */
+        .menu-toggle {
+            position: absolute; right: -15px; top: 35px; width: 30px; height: 30px;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: var(--gold-primary); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1100;
+        }
+
+        .mobile-btn { display: none; position: fixed; top: 20px; right: 20px; z-index: 2000; background: var(--gold-primary); color: #fff; width: 45px; height: 45px; border-radius: 50%; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 900; opacity: 0; pointer-events: none; transition: 0.3s; }
+        body.mobile-open .overlay { opacity: 1; pointer-events: auto; }
+
+        @media (max-width: 768px) {
+            nav { transform: translateX(-100%); width: 260px !important; }
+            body.mobile-open nav { transform: translateX(0); }
+            main { margin-left: 0 !important; padding: 100px 20px 40px 20px; }
+            .menu-toggle { display: none; }
+            .mobile-btn { display: flex; }
+            body.sidebar-mini nav { width: 260px; } 
+            body.sidebar-mini .nav-label, body.sidebar-mini .logo-text, body.sidebar-mini nav a span:last-child { display: inline; }
+        }
+    </style>
+</head>
+<body class="sidebar-mini">
+
+    <div class="overlay" id="overlay"></div>
+    <div class="mobile-btn" id="mobileBtn"><i class="fa-solid fa-bars"></i></div>
+
+    <nav id="sidebar">
+        <div class="menu-toggle" id="sidebarToggle"><i class="fa-solid fa-chevron-left"></i></div>
+
+        <div class="logo-area">
+            <img src="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d" class="logo-icon">
+            <span class="logo-text">ShepherdNet</span>
+        </div>
+
+        <a href="../admin/index.html" class="active"><i class="fa-solid fa-arrow-left"></i> <span>Dashboard</span></a>
+        
+        <div style="flex-grow:1"></div>
+        
+        <a href="#" id="themeToggle"><i class="fa-solid fa-moon"></i> <span>Theme</span></a>
+        <a href="#" id="logoutBtn" style="color:var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> <span>Sign Out</span></a>
+    </nav>
+
+    <main>
+        <div class="card">
+            <h2>Event Manager</h2>
+            <p class="subtitle">Automate and customize the ministry calendar.</p>
+
+            <span class="section-title">Schedule Special Event</span>
+            <div class="info-box">
+                <i class="fa-solid fa-info-circle"></i> <b>Smart Overwrite:</b> Adding a special event (e.g., Convention) will automatically replace any default service scheduled for that same day.
+            </div>
+
+            <input type="text" id="specialEventName" placeholder="Event Name (e.g. Easter Convention)">
+            <input type="date" id="specialEventDate">
+            
+            <div class="input-row">
+                <input type="time" id="specialEventTime" value="18:00">
+                <select id="specialCategory">
+                    <option value="Special">Special Service</option>
+                    <option value="Convention">Convention</option>
+                    <option value="Camp">Camp Meeting</option>
+                </select>
+            </div>
+            
+            <button id="btnCreateSpecial" class="btn btn-special"><i class="fa-solid fa-calendar-plus"></i> Add Event</button>
+        </div>
+
+        <div class="card" style="border-color:var(--danger);">
+            <span class="section-title" style="color:var(--danger);">System Reset (Admin Only)</span>
+            <div class="info-box danger">
+                <i class="fa-solid fa-triangle-exclamation"></i> <b>Danger Zone:</b> This action wipes ALL existing events and regenerates the default schedule for the year.
+            </div>
+
+            <button id="btnAutoGenerate" class="btn btn-danger" disabled>
+                <i class="fa-solid fa-lock"></i> Locked until 2027
+            </button>
+            <p id="lockStatus" style="text-align:center; font-size:0.8rem; margin-top:10px; opacity:0.6;">Automatic scheduling is disabled for the current year to prevent data loss.</p>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, writeBatch, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCBv60eRCO0e4dFBMKGKnIATouxTuk1Bcc", authDomain: "fob-database-139d1.firebaseapp.com", projectId: "fob-database-139d1", storageBucket: "fob-database-139d1.firebasestorage.app", appId: "1:375165731354:web:b5fa57dcb2d71ee0d8c7a3" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app, "fobrealdbase");
+        const auth = getAuth(app);
+
+        // --- THEME & UI ---
+        const body = document.body;
+        const themeBtn = document.getElementById('themeToggle');
+        const themeIcon = themeBtn.querySelector('i');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeIcon.className = savedTheme === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+
+        themeBtn.onclick = (e) => {
+            e.preventDefault();
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            themeIcon.className = next === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        };
+
+        document.getElementById('sidebarToggle').onclick = () => body.classList.toggle('sidebar-mini');
+        const mobileBtn = document.getElementById('mobileBtn');
+        const overlay = document.getElementById('overlay');
+        mobileBtn.onclick = () => body.classList.add('mobile-open');
+        overlay.onclick = () => body.classList.remove('mobile-open');
+
+        // --- AUTH CHECK ---
+        onAuthStateChanged(auth, (user) => {
+            if (!user) { window.location.href = "../index.html"; return; }
+            checkLockStatus();
+        });
+
+        // --- TIME LOCK LOGIC ---
+        function checkLockStatus() {
+            const currentYear = new Date().getFullYear();
+            const btn = document.getElementById('btnAutoGenerate');
+            const status = document.getElementById('lockStatus');
+
+            if (currentYear >= 2027) {
+                // UNLOCK
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-rotate-right"></i> Generate ${currentYear} Schedule`;
+                btn.style.opacity = "1";
+                btn.style.filter = "none";
+                status.innerText = `Ready to generate schedule for ${currentYear}. This will wipe previous data.`;
+            } else {
+                // KEEP LOCKED
+                btn.disabled = true;
+                status.innerText = `Global reset is locked until Jan 1, 2027 to protect current data.`;
+            }
+        }
+
+        // --- 1. SPECIAL EVENT (ALWAYS ACTIVE) ---
+        document.getElementById('btnCreateSpecial').onclick = async () => {
+            const btn = document.getElementById('btnCreateSpecial');
+            const name = document.getElementById('specialEventName').value;
+            const dateStr = document.getElementById('specialEventDate').value;
+            const timeStr = document.getElementById('specialEventTime').value;
+            const cat = document.getElementById('specialCategory').value;
+
+            if(!name || !dateStr) return alert("Please fill in event details.");
+
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Adding...';
+
+            try {
+                const fullDate = new Date(`${dateStr}T${timeStr}:00`);
+                
+                // CONFLICT CHECK & OVERWRITE
+                const q = query(collection(db, "events"), where("dateString", "==", dateStr));
+                const conflictSnap = await getDocs(q);
+                const batch = writeBatch(db);
+
+                if (!conflictSnap.empty) {
+                    conflictSnap.forEach(doc => { batch.delete(doc.ref); });
+                }
+
+                const newDocRef = doc(collection(db, "events"));
+                batch.set(newDocRef, {
+                    title: name, name: name, // legacy support
+                    date: fullDate, dateString: dateStr,
+                    category: cat,
+                    createdBy: auth.currentUser.uid, createdAt: new Date()
+                });
+
+                await batch.commit();
+                alert(`Success! "${name}" added. ${conflictSnap.empty ? '' : '(Overwrote existing event)'}`);
+                document.getElementById('specialEventName').value = "";
+                
+            } catch (e) { alert(e.message); }
+            finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-calendar-plus"></i> Add Event'; }
+        };
+
+        // --- 2. MASS GENERATION (LOCKED UNTIL 2027) ---
+        document.getElementById('btnAutoGenerate').onclick = async () => {
+            const targetYear = new Date().getFullYear(); // Dynamic Year
+            if(!confirm(`⚠️ CRITICAL WARNING ⚠️\n\nThis will DELETE ALL events and generate a fresh schedule for ${targetYear}.\n\nThis cannot be undone. Proceed?`)) return;
+
+            const btn = document.getElementById('btnAutoGenerate');
+            const msg = document.getElementById('lockStatus');
+            btn.disabled = true;
+
+            try {
+                // A. WIPE
+                msg.innerText = "Step 1/2: Cleaning old database...";
+                const allEvents = await getDocs(collection(db, "events"));
+                let batch = writeBatch(db);
+                let count = 0;
+                
+                for (const doc of allEvents.docs) {
+                    batch.delete(doc.ref);
+                    count++;
+                    if (count >= 400) { await batch.commit(); batch = writeBatch(db); count = 0; }
+                }
+                if (count > 0) await batch.commit();
+
+                // B. GENERATE
+                msg.innerText = `Step 2/2: Generating ${targetYear} schedule...`;
+                const eventsList = [];
+                const start = new Date(targetYear, 0, 1);
+                const end = new Date(targetYear, 11, 31);
+                let curr = new Date(start);
+
+                while (curr <= end) {
+                    const day = curr.getDay(); 
+                    const dateStr = curr.toISOString().split('T')[0];
+                    
+                    // Sunday (8am)
+                    if (day === 0) {
+                        const d = new Date(curr); d.setHours(8, 0, 0);
+                        eventsList.push({ title: "Sunday Service", date: d, dateString: dateStr, category: "Service" });
+                    }
+                    // Wednesday (6pm)
+                    if (day === 3) {
+                        const d = new Date(curr); d.setHours(18, 0, 0);
+                        eventsList.push({ title: "Wednesday Brake Fuel Prayers", date: d, dateString: dateStr, category: "Prayer" });
+                    }
+                    // Friday (6pm)
+                    if (day === 5) {
+                        const d = new Date(curr); d.setHours(18, 0, 0);
+                        eventsList.push({ title: "Freeflow Service", date: d, dateString: dateStr, category: "Service" });
+                    }
+                    curr.setDate(curr.getDate() + 1);
+                }
+
+                // Last Saturday (7am)
+                for (let month = 0; month < 12; month++) {
+                    let d = new Date(targetYear, month + 1, 0); 
+                    while (d.getDay() !== 6) d.setDate(d.getDate() - 1);
+                    d.setHours(7, 0, 0);
+                    eventsList.push({ title: "Prayer Secrets Conference", date: d, dateString: d.toISOString().split('T')[0], category: "Conference" });
+                }
+
+                // C. SAVE BATCHES
+                batch = writeBatch(db);
+                count = 0;
+                for (const ev of eventsList) {
+                    const ref = doc(collection(db, "events"));
+                    batch.set(ref, { ...ev, name: ev.title, createdAt: new Date(), createdBy: auth.currentUser.uid });
+                    count++;
+                    if(count >= 400) { await batch.commit(); batch = writeBatch(db); count = 0; }
+                }
+                if(count > 0) await batch.commit();
+
+                alert(`Operation Complete! Generated ${eventsList.length} events for ${targetYear}.`);
+                location.reload();
+
+            } catch (e) {
+                console.error(e);
+                alert("Error: " + e.message);
+                btn.disabled = false;
+                msg.innerText = "Error occurred during generation.";
+            }
+        };
+
+        document.getElementById('logoutBtn').onclick = (e) => {
+            e.preventDefault();
+            signOut(auth).then(() => window.location.href="/index.html");
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Inbox | ShepherdNet</title>
+    
+    <link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- APP THEME --- */
+        :root {
+            --gold-primary: #F2A20C;
+            --gold-dark: #BF9C34;
+            --bg: #0f172a;
+            --glass: rgba(15, 23, 42, 0.95);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --sidebar-width: 260px;
+            --sidebar-mini: 80px;
+            --danger: #ff4b5c;
+            --success: #00ff88;
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --glass: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s;
+        }
+
+        /* --- SIDEBAR --- */
+        nav {
+            width: var(--sidebar-width);
+            background: var(--glass);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+        }
+
+        body.sidebar-mini nav { width: var(--sidebar-mini); padding: 30px 15px; }
+        body.sidebar-mini .profile-info, 
+        body.sidebar-mini nav a span:last-child, 
+        body.sidebar-mini .nav-label { display: none; }
+        body.sidebar-mini .logo-text { display: none; }
+        body.sidebar-mini .menu-toggle i { transform: rotate(180deg); }
+
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; color: var(--gold-primary); font-weight: 700; font-size: 1.2rem; white-space: nowrap; overflow: hidden; }
+        .logo-icon { width: 35px; height: 35px; object-fit: contain; }
+
+        nav a {
+            display: flex; align-items: center; gap: 15px;
+            color: var(--text-dim); text-decoration: none;
+            padding: 12px 15px; border-radius: 12px;
+            margin-bottom: 5px; transition: 0.2s; font-size: 0.9rem; font-weight: 500;
+            white-space: nowrap; position: relative;
+        }
+        nav a:hover, nav a.active { background: rgba(242, 162, 12, 0.1); color: var(--gold-primary); }
+        nav a i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            flex: 1; padding: 40px;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+            max-width: 800px; margin: 0 auto;
+            width: 100%;
+        }
+        body.sidebar-mini main { margin-left: auto; margin-right: auto; }
+
+        /* Header */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        h1 { font-size: 1.5rem; font-weight: 600; margin: 0; color: var(--gold-primary); }
+        
+        .clear-btn { 
+            font-size: 0.8rem; color: var(--text-dim); cursor: pointer; 
+            border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; 
+            transition: 0.2s; background: transparent; display: flex; align-items: center; gap: 5px;
+        }
+        .clear-btn:hover { color: var(--text-main); border-color: var(--text-main); background: rgba(255,255,255,0.05); }
+
+        /* --- NOTIFICATION LIST --- */
+        .notif-list { display: flex; flex-direction: column; gap: 15px; }
+        
+        .notif-card {
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 20px; border-radius: 16px;
+            display: flex; gap: 20px; align-items: flex-start;
+            transition: 0.2s; position: relative; overflow: hidden;
+        }
+        .notif-card:hover { transform: translateY(-2px); border-color: var(--gold-primary); }
+        
+        .notif-icon {
+            width: 45px; height: 45px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; flex-shrink: 0;
+        }
+        
+        /* Message Types */
+        .icon-info { background: rgba(79, 172, 254, 0.15); color: #4facfe; }
+        .icon-success { background: rgba(0, 255, 136, 0.15); color: var(--success); }
+        .icon-warn { background: rgba(242, 162, 12, 0.15); color: var(--gold-primary); }
+        .icon-urgent { background: rgba(255, 75, 92, 0.15); color: var(--danger); }
+
+        .notif-content { flex: 1; }
+        .notif-content h3 { font-size: 1rem; font-weight: 600; margin: 0 0 6px 0; color: var(--text-main); }
+        .notif-content p { font-size: 0.85rem; color: var(--text-dim); margin: 0; line-height: 1.5; }
+        
+        .notif-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .notif-time { font-size: 0.7rem; color: var(--text-dim); opacity: 0.6; }
+        .mark-read { font-size: 0.7rem; color: var(--gold-primary); cursor: pointer; text-decoration: none; }
+
+        .unread-indicator {
+            position: absolute; top: 15px; right: 15px;
+            width: 10px; height: 10px; background: var(--gold-primary);
+            border-radius: 50%; box-shadow: 0 0 8px var(--gold-primary);
+        }
+
+        /* Sidebar Toggle */
+        .menu-toggle {
+            position: absolute; right: -15px; top: 35px; width: 30px; height: 30px;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: var(--gold-primary); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1100;
+        }
+
+        .mobile-btn { display: none; position: fixed; top: 20px; right: 20px; z-index: 2000; background: var(--gold-primary); color: #fff; width: 45px; height: 45px; border-radius: 50%; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 900; opacity: 0; pointer-events: none; transition: 0.3s; }
+        body.mobile-open .overlay { opacity: 1; pointer-events: auto; }
+
+        @media (max-width: 768px) {
+            nav { transform: translateX(-100%); width: 260px !important; }
+            body.mobile-open nav { transform: translateX(0); }
+            main { margin-left: 0 !important; padding: 100px 20px 40px 20px; }
+            .menu-toggle { display: none; }
+            .mobile-btn { display: flex; }
+            body.sidebar-mini nav { width: 260px; } 
+            body.sidebar-mini .nav-label, body.sidebar-mini .logo-text, body.sidebar-mini nav a span:last-child { display: inline; }
+        }
+    </style>
+</head>
+<body class="sidebar-mini">
+
+    <div class="overlay" id="overlay"></div>
+    <div class="mobile-btn" id="mobileBtn"><i class="fa-solid fa-bars"></i></div>
+
+    <nav id="sidebar">
+        <div class="menu-toggle" id="sidebarToggle"><i class="fa-solid fa-chevron-left"></i></div>
+
+        <div class="logo-area">
+            <img src="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d" class="logo-icon">
+            <span class="logo-text">ShepherdNet</span>
+        </div>
+
+        <a href="#" id="dashLink">
+            <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
+        </a>
+        
+        <div class="nav-label">Messages</div>
+        <a href="#" class="active"><i class="fa-solid fa-bell"></i> <span>Inbox</span></a>
+        
+        <div style="flex-grow:1"></div>
+        
+        <a href="#" id="themeToggle"><i class="fa-solid fa-moon"></i> <span>Theme</span></a>
+        <a href="#" id="logoutBtn" style="color:var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> <span>Sign Out</span></a>
+    </nav>
+
+    <main>
+        <header>
+            <h1><i class="fa-regular fa-envelope"></i> Message Center</h1>
+            <button class="clear-btn" id="refreshBtn"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        </header>
+
+        <div id="notifList" class="notif-list">
+            <p style="text-align:center; opacity:0.5; padding:40px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Checking for messages...</p>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, where, orderBy, limit, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCBv60eRCO0e4dFBMKGKnIATouxTuk1Bcc", authDomain: "fob-database-139d1.firebaseapp.com", projectId: "fob-database-139d1", storageBucket: "fob-database-139d1.firebasestorage.app", appId: "1:375165731354:web:b5fa57dcb2d71ee0d8c7a3" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app, "fobrealdbase");
+
+        // --- THEME & UI ---
+        const body = document.body;
+        const themeBtn = document.getElementById('themeToggle');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        themeBtn.onclick = (e) => {
+            e.preventDefault();
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        };
+
+        document.getElementById('sidebarToggle').onclick = () => body.classList.toggle('sidebar-mini');
+        const mobileBtn = document.getElementById('mobileBtn');
+        const overlay = document.getElementById('overlay');
+        mobileBtn.onclick = () => body.classList.add('mobile-open');
+        overlay.onclick = () => body.classList.remove('mobile-open');
+
+        // --- DATA LOGIC ---
+        let currentUid = null;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = "index.html"; return; }
+            currentUid = user.uid;
+            
+            // 1. Determine Role for Back Link
+            const aSnap = await getDoc(doc(db, "master_admin", user.uid));
+            const pSnap = await getDoc(doc(db, "pastors", user.uid));
+            if(aSnap.exists()) document.getElementById('dashLink').href = "admin/index.html";
+            else if(pSnap.exists()) document.getElementById('dashLink').href = "pastor/index.html";
+            else document.getElementById('dashLink').href = "shepherd/index.html";
+
+            loadNotifications();
+        });
+
+        async function loadNotifications() {
+            const list = document.getElementById('notifList');
+            
+            try {
+                // Fetch messages for 'all' OR specific user
+                // Note: Firestore 'in' query works for up to 10 items
+                const q = query(
+                    collection(db, "notifications"), 
+                    where("targetId", "in", ["all", currentUid]),
+                    orderBy("timestamp", "desc"), 
+                    limit(20)
+                );
+
+                const snap = await getDocs(q);
+                
+                if(snap.empty) {
+                    list.innerHTML = `
+                        <div style="text-align:center; padding:40px; opacity:0.5;">
+                            <i class="fa-regular fa-envelope-open" style="font-size:3rem; margin-bottom:10px;"></i>
+                            <p>You're all caught up!</p>
+                        </div>`;
+                    return;
+                }
+
+                list.innerHTML = snap.docs.map(d => {
+                    const n = d.data();
+                    // Date Format
+                    const date = n.timestamp && n.timestamp.toDate ? n.timestamp.toDate() : new Date();
+                    const isToday = date.toDateString() === new Date().toDateString();
+                    const timeStr = isToday 
+                        ? date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                        : date.toLocaleDateString();
+
+                    // Check if read
+                    const isRead = n.readBy && n.readBy.includes(currentUid);
+                    
+                    // Icon Logic
+                    let iconClass = "icon-info";
+                    let iconSymbol = '<i class="fa-solid fa-bell"></i>';
+                    
+                    if(n.title.toLowerCase().includes('success')) { iconClass = "icon-success"; iconSymbol = '<i class="fa-solid fa-check"></i>'; }
+                    else if(n.title.toLowerCase().includes('urgent') || n.title.toLowerCase().includes('war room')) { iconClass = "icon-urgent"; iconSymbol = '<i class="fa-solid fa-triangle-exclamation"></i>'; }
+                    else if(n.title.toLowerCase().includes('reminder')) { iconClass = "icon-warn"; iconSymbol = '<i class="fa-solid fa-clock"></i>'; }
+
+                    return `
+                    <div class="notif-card" id="card-${d.id}" style="${!isRead ? 'border-color:var(--gold-primary); background:rgba(242,162,12,0.05);' : ''}">
+                        <div class="notif-icon ${iconClass}">${iconSymbol}</div>
+                        <div class="notif-content">
+                            <h3>${n.title}</h3>
+                            <p>${n.body}</p>
+                            <div class="notif-footer">
+                                <span class="notif-time">${timeStr}</span>
+                                ${!isRead ? `<span class="mark-read" onclick="markAsRead('${d.id}')">Mark Read</span>` : '<span class="notif-time"><i class="fa-solid fa-check-double"></i> Read</span>'}
+                            </div>
+                        </div>
+                        ${!isRead ? '<div class="unread-indicator"></div>' : ''}
+                    </div>`;
+                }).join('');
+
+            } catch (e) {
+                console.error(e);
+                list.innerHTML = "<p style='text-align:center; color:var(--danger);'>Error loading messages.</p>";
+            }
+        }
+
+        // Expose function globally for the onclick event
+        window.markAsRead = async (docId) => {
+            try {
+                const notifRef = doc(db, "notifications", docId);
+                const snap = await getDoc(notifRef);
+                if(snap.exists()) {
+                    const currentReads = snap.data().readBy || [];
+                    if(!currentReads.includes(currentUid)) {
+                        const newReads = [...currentReads, currentUid];
+                        await updateDoc(notifRef, { readBy: newReads });
+                        
+                        // Optimistic UI Update
+                        const card = document.getElementById(`card-${docId}`);
+                        if(card) {
+                            card.style.borderColor = "var(--border)";
+                            card.style.background = "var(--glass)";
+                            const indicator = card.querySelector('.unread-indicator');
+                            if(indicator) indicator.remove();
+                            const btn = card.querySelector('.mark-read');
+                            if(btn) { btn.parentNode.innerHTML = '<span class="notif-time"><i class="fa-solid fa-check-double"></i> Read</span>'; }
+                        }
+                    }
+                }
+            } catch(e) { console.error(e); }
+        };
+
+        document.getElementById('refreshBtn').onclick = () => loadNotifications();
+
+        document.getElementById('logoutBtn').onclick = (e) => {
+            e.preventDefault();
+            signOut(auth).then(() => window.location.href="/index.html");
+        };
+    </script>
+</body>
+</html>

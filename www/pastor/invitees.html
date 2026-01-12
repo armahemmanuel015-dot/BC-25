@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invitee Mandate | ShepherdNet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- APP THEME --- */
+        :root {
+            --gold-primary: #F2A20C;
+            --gold-dark: #BF9C34;
+            --bg: #0f172a;
+            --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --sidebar-width: 260px;
+            --sidebar-mini: 80px;
+            --danger: #ff4b5c;
+            --success: #00ff88;
+            --input-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --glass: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+            --input-bg: #f1f5f9;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s;
+        }
+
+        /* --- SIDEBAR --- */
+        nav {
+            width: var(--sidebar-width);
+            background: var(--glass);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+        }
+
+        body.sidebar-mini nav { width: var(--sidebar-mini); padding: 30px 15px; }
+        body.sidebar-mini .profile-info, 
+        body.sidebar-mini nav a span:last-child, 
+        body.sidebar-mini .nav-label { display: none; }
+        body.sidebar-mini .logo-text { display: none; }
+        body.sidebar-mini .menu-toggle i { transform: rotate(180deg); }
+
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; color: var(--gold-primary); font-weight: 700; font-size: 1.2rem; white-space: nowrap; overflow: hidden; }
+        .logo-icon { width: 35px; height: 35px; object-fit: contain; }
+
+        nav a {
+            display: flex; align-items: center; gap: 15px;
+            color: var(--text-dim); text-decoration: none;
+            padding: 12px 15px; border-radius: 12px;
+            margin-bottom: 5px; transition: 0.2s; font-size: 0.9rem; font-weight: 500;
+            white-space: nowrap; position: relative;
+        }
+        nav a:hover, nav a.active { background: rgba(242, 162, 12, 0.1); color: var(--gold-primary); }
+        nav a i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            flex: 1; padding: 40px;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+            max-width: 800px; margin: 0 auto;
+            width: 100%;
+        }
+        body.sidebar-mini main { margin-left: auto; margin-right: auto; }
+
+        /* --- HEADER --- */
+        header { margin-bottom: 30px; }
+        h1 { font-size: 1.5rem; font-weight: 600; margin: 0; color: var(--gold-primary); }
+        p#roleDisplay { font-size: 0.8rem; opacity: 0.7; margin-top: 5px; }
+
+        /* --- LOCKED STATE --- */
+        #lockMessage {
+            background: rgba(242, 162, 12, 0.05); border: 1px solid var(--gold-primary);
+            border-radius: 20px; padding: 40px; text-align: center;
+            display: none; margin-bottom: 20px;
+        }
+        #lockMessage i { font-size: 3rem; color: var(--gold-primary); margin-bottom: 15px; }
+        #lockMessage h3 { margin: 0 0 10px 0; color: var(--text-main); }
+        #lockMessage p { font-size: 0.9rem; opacity: 0.7; margin: 0; }
+
+        /* --- ADD FORM CARD --- */
+        .add-card {
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 25px; border-radius: 20px; margin-bottom: 30px;
+            display: none; /* Controlled by JS */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .add-card h3 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--gold-primary); margin-bottom: 15px; }
+
+        /* Custom Checkboxes */
+        .checkbox-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; }
+        .checkbox-item { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; }
+        .checkbox-item input { width: 18px; height: 18px; accent-color: var(--gold-primary); cursor: pointer; }
+
+        .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        input {
+            width: 100%; padding: 12px; border-radius: 10px;
+            background: var(--input-bg); border: 1px solid var(--border);
+            color: var(--text-main); font-family: inherit; font-size: 0.9rem; outline: none;
+            margin-bottom: 10px;
+        }
+        input:focus { border-color: var(--gold-primary); }
+
+        .btn-main {
+            width: 100%; padding: 14px; background: var(--gold-primary);
+            color: #000; font-weight: 700; border: none; border-radius: 10px;
+            cursor: pointer; transition: 0.2s; font-size: 0.95rem;
+        }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(242, 162, 12, 0.3); }
+
+        /* --- EVENT SECTIONS --- */
+        .event-section { margin-bottom: 25px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); }
+        .event-header {
+            background: rgba(255,255,255,0.03); padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .ev-title { font-weight: 600; color: var(--gold-primary); font-size: 1rem; }
+        .ev-date { font-size: 0.75rem; opacity: 0.6; display: block; }
+        .ev-badge { background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+
+        .list-container { padding: 15px; background: rgba(0,0,0,0.2); }
+
+        /* --- INVITEE ITEM --- */
+        .invitee-item {
+            background: var(--glass); border: 1px solid var(--border);
+            border-radius: 12px; padding: 15px; margin-bottom: 10px;
+        }
+        .invitee-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .invitee-info h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+        .invitee-info p { margin: 2px 0 0 0; font-size: 0.8rem; opacity: 0.6; }
+        
+        .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-action {
+            padding: 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+            cursor: pointer; background: transparent; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .btn-absent { border: 1px solid var(--danger); color: var(--danger); }
+        .btn-absent:hover { background: rgba(255, 75, 92, 0.1); }
+        
+        .btn-present { border: 1px solid var(--success); color: var(--success); }
+        .btn-present:hover { background: rgba(0, 255, 136, 0.1); }
+
+        .promo-link {
+            display: block; text-align: center; margin-top: 10px; font-size: 0.75rem;
+            color: var(--text-dim); text-decoration: underline; cursor: pointer;
+        }
+
+        /* --- MODAL --- */
+        .modal {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+            z-index: 2000; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background: #1e293b; width: 100%; max-width: 400px;
+            border-radius: 20px; padding: 30px; border: 1px solid var(--border);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        
+        .counter-wrapper {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.05); padding: 10px 15px;
+            border-radius: 10px; margin-bottom: 10px;
+        }
+        .counter-ctrl { display: flex; align-items: center; gap: 15px; }
+        .counter-btn {
+            width: 30px; height: 30px; border-radius: 8px; border: none;
+            font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Sidebar Toggle */
+        .menu-toggle {
+            position: absolute; right: -15px; top: 35px; width: 30px; height: 30px;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: var(--gold-primary); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1100;
+        }
+
+        .mobile-btn { display: none; position: fixed; top: 20px; right: 20px; z-index: 2000; background: var(--gold-primary); color: #fff; width: 45px; height: 45px; border-radius: 50%; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 900; opacity: 0; pointer-events: none; transition: 0.3s; }
+        body.mobile-open .overlay { opacity: 1; pointer-events: auto; }
+
+        @media (max-width: 768px) {
+            nav { transform: translateX(-100%); width: 260px !important; }
+            body.mobile-open nav { transform: translateX(0); }
+            main { margin-left: 0 !important; padding: 100px 20px 40px 20px; }
+            .menu-toggle { display: none; }
+            .mobile-btn { display: flex; }
+            body.sidebar-mini nav { width: 260px; } 
+            body.sidebar-mini .nav-label, body.sidebar-mini .logo-text, body.sidebar-mini nav a span:last-child { display: inline; }
+        }
+    </style>
+</head>
+<body class="sidebar-mini">
+
+    <div class="overlay" id="overlay"></div>
+    <div class="mobile-btn" id="mobileBtn"><i class="fa-solid fa-bars"></i></div>
+
+    <nav id="sidebar">
+        <div class="menu-toggle" id="sidebarToggle"><i class="fa-solid fa-chevron-left"></i></div>
+
+        <div class="logo-area">
+            <img src="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d" class="logo-icon">
+            <span class="logo-text">ShepherdNet</span>
+        </div>
+
+        <a href="#" id="dashLink" class="active"><i class="fa-solid fa-arrow-left"></i> <span>Dashboard</span></a>
+        
+        <div style="flex-grow:1"></div>
+        
+        <a href="#" id="themeToggle"><i class="fa-solid fa-moon"></i> <span>Theme</span></a>
+        <a href="#" id="logoutBtn" style="color:var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> <span>Sign Out</span></a>
+    </nav>
+
+    <main>
+        <header>
+            <h1>Invitee Mandate</h1>
+            <p id="roleDisplay">Connecting...</p>
+        </header>
+
+        <div id="lockMessage">
+            <i class="fa-solid fa-lock"></i>
+            <h3>Forms Locked</h3>
+            <p>Targeting is only available 48 hours before a service.</p>
+        </div>
+
+        <div id="addCard" class="add-card">
+            <h3><i class="fa-solid fa-crosshairs"></i> Target New Soul</h3>
+            
+            <label style="font-size:0.7rem; color:var(--text-dim); margin-bottom:5px; display:block;">SELECT EVENTS:</label>
+            <div id="eventCheckboxes" class="checkbox-group"></div>
+
+            <input type="text" id="invName" placeholder="Full Name">
+            <div class="input-row">
+                <input type="text" id="invHostel" placeholder="Residence / Hostel">
+                <input type="tel" id="invPhone" placeholder="Phone Number">
+            </div>
+            <button onclick="addInvitee()" class="btn-main"><i class="fa-solid fa-plus"></i> Add to Watchlist</button>
+        </div>
+
+        <div id="eventsArea">
+            <p style="text-align:center; opacity:0.5; padding:40px;"><i class="fa-solid fa-spinner fa-spin"></i> Scanning schedule...</p>
+        </div>
+    </main>
+
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-top:0; color:var(--gold-primary);">Submit Report</h2>
+            <p style="font-size:0.8rem; opacity:0.7; margin-bottom:5px;">Event: <span id="reportEventName" style="color:white; font-weight:bold;"></span></p>
+            <p style="font-size:0.9rem; font-weight:bold; margin-bottom:20px;">Target: <span id="reportTargetName"></span></p>
+            
+            <input type="hidden" id="reportId">
+            <input type="hidden" id="reportEventId">
+            <input type="hidden" id="reportEventDate">
+            <input type="hidden" id="reportStatus">
+
+            <div id="reasonSection" style="display:none; margin-bottom:15px;">
+                <label style="color:var(--danger); font-size:0.7rem; font-weight:bold; display:block; margin-bottom:5px;">REASON FOR ABSENCE</label>
+                <input type="text" id="reportReason" placeholder="Required..." style="border-color:var(--danger);">
+            </div>
+
+            <label style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px; display:block;">EFFORT TRACKING</label>
+            
+            <div class="counter-wrapper">
+                <span><i class="fa-solid fa-phone"></i> Calls</span>
+                <div class="counter-ctrl">
+                    <button class="counter-btn" style="background:rgba(255,75,92,0.2); color:var(--danger);" onclick="adj('reportCalls', -1)">-</button>
+                    <span id="reportCalls" style="font-weight:bold; font-size:1.1rem;">0</span>
+                    <button class="counter-btn" style="background:rgba(0,255,136,0.2); color:var(--success);" onclick="adj('reportCalls', 1)">+</button>
+                </div>
+            </div>
+            
+            <div class="counter-wrapper">
+                <span><i class="fa-solid fa-person-walking"></i> Visits</span>
+                <div class="counter-ctrl">
+                    <button class="counter-btn" style="background:rgba(255,75,92,0.2); color:var(--danger);" onclick="adj('reportVisits', -1)">-</button>
+                    <span id="reportVisits" style="font-weight:bold; font-size:1.1rem;">0</span>
+                    <button class="counter-btn" style="background:rgba(0,255,136,0.2); color:var(--success);" onclick="adj('reportVisits', 1)">+</button>
+                </div>
+            </div>
+
+            <div class="input-row" style="margin-top:25px; margin-bottom:0;">
+                <button onclick="document.getElementById('reportModal').style.display='none'" style="flex:1; padding:12px; background:transparent; border:1px solid var(--border); color:var(--text-dim); border-radius:10px; cursor:pointer;">Cancel</button>
+                <button onclick="submitReport()" style="flex:1; padding:12px; background:var(--gold-primary); border:none; color:black; font-weight:bold; border-radius:10px; cursor:pointer;">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="promoModal" class="modal">
+        <div class="modal-content">
+            <h2 style="color:var(--success); margin-top:0; text-align:center;"><i class="fa-solid fa-graduation-cap"></i> Promote Soul</h2>
+            <p style="text-align:center; font-size:0.85rem; opacity:0.7; margin-bottom:20px;">Move this soul to the official member registry.</p>
+            
+            <input type="hidden" id="promoId">
+            <input type="text" id="promoFirstname" placeholder="First Name">
+            <input type="text" id="promoSurname" placeholder="Surname">
+            
+            <button onclick="finalSubmitPromotion()" class="btn-main" style="background:var(--success); color:black; margin-top:10px;">Confirm Promotion</button>
+            <button onclick="document.getElementById('promoModal').style.display='none'" style="width:100%; padding:12px; background:transparent; border:none; color:var(--text-dim); margin-top:5px; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, doc, updateDoc, serverTimestamp, getDoc, arrayUnion, deleteDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCBv60eRCO0e4dFBMKGKnIATouxTuk1Bcc", authDomain: "fob-database-139d1.firebaseapp.com", projectId: "fob-database-139d1", storageBucket: "fob-database-139d1.firebasestorage.app", appId: "1:375165731354:web:b5fa57dcb2d71ee0d8c7a3" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app, "fobrealdbase");
+        const auth = getAuth(app);
+        
+        let currentUser = null;
+        let myRole = null; 
+        let ACTIVE_EVENTS = []; 
+
+        // --- UI & THEME ---
+        const body = document.body;
+        const themeBtn = document.getElementById('themeToggle');
+        const themeIcon = themeBtn.querySelector('i');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeIcon.className = savedTheme === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+
+        themeBtn.onclick = (e) => {
+            e.preventDefault();
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            themeIcon.className = next === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        };
+
+        document.getElementById('sidebarToggle').onclick = () => body.classList.toggle('sidebar-mini');
+        const mobileBtn = document.getElementById('mobileBtn');
+        const overlay = document.getElementById('overlay');
+        mobileBtn.onclick = () => body.classList.add('mobile-open');
+        overlay.onclick = () => body.classList.remove('mobile-open');
+
+        // --- AUTH & DATA ---
+        onAuthStateChanged(auth, async (user) => {
+            if(user) { 
+                currentUser = user; 
+                await determineRole(user.uid);
+                await fetchActiveEvents(); 
+                loadInvitees(); 
+            } else { location.href = "../index.html"; }
+        });
+
+        async function determineRole(uid) {
+            const link = document.getElementById('dashLink');
+            const roleText = document.getElementById('roleDisplay');
+            const aSnap = await getDoc(doc(db, "master_admin", uid));
+            const pSnap = await getDoc(doc(db, "pastors", uid));
+            const sSnap = await getDoc(doc(db, "shepherds", uid));
+            
+            if (aSnap.exists()) { myRole = 'master_admin'; link.href = "../admin/index.html"; roleText.innerText = "Targeting for Admin"; } 
+            else if (pSnap.exists()) { myRole = 'pastor'; link.href = "../pastor/index.html"; roleText.innerText = pSnap.data().chapel_name || "Pastor's Mandate"; } 
+            else if (sSnap.exists()) { myRole = 'shepherd'; link.href = "../shepherd/index.html"; roleText.innerText = sSnap.data().chapel_name || "Shepherd's Watch"; } 
+            else { link.href = "../index.html"; roleText.innerText = "Guest User"; }
+        }
+
+        async function fetchActiveEvents() {
+            const now = new Date();
+            const future48h = new Date(now.getTime() + (48 * 60 * 60 * 1000)); 
+
+            try {
+                const q = query(collection(db, "events"), where("date", ">=", now), where("date", "<=", future48h), orderBy("date", "asc"));
+                const snap = await getDocs(q);
+                ACTIVE_EVENTS = [];
+
+                snap.forEach(d => {
+                    const data = d.data();
+                    const title = (data.title || data.name || "").toLowerCase();
+                    if (!title.includes("dawn prayer")) {
+                        ACTIVE_EVENTS.push({ id: d.id, title: data.title || data.name, date: data.date.toDate() });
+                    }
+                });
+
+                if (ACTIVE_EVENTS.length === 0) {
+                    const nextQ = query(collection(db, "events"), where("date", ">=", now), orderBy("date", "asc"), limit(1));
+                    const nextSnap = await getDocs(nextQ);
+                    if(!nextSnap.empty) {
+                        const d = nextSnap.docs[0];
+                        const data = d.data();
+                        if (!data.name.toLowerCase().includes("dawn prayer")) {
+                            ACTIVE_EVENTS.push({ id: d.id, title: data.title || data.name, date: data.date.toDate(), isLocked: true });
+                        }
+                    }
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadInvitees() {
+            const mainArea = document.getElementById('eventsArea');
+            const addCard = document.getElementById('addCard');
+            const lockMsg = document.getElementById('lockMessage');
+            const checkboxGroup = document.getElementById('eventCheckboxes');
+            
+            mainArea.innerHTML = "";
+            checkboxGroup.innerHTML = ""; 
+
+            if(ACTIVE_EVENTS.length === 0) {
+                mainArea.innerHTML = ""; addCard.style.display = 'none'; lockMsg.style.display = 'block'; return;
+            }
+
+            const openEvents = ACTIVE_EVENTS.filter(e => !e.isLocked);
+            
+            if (openEvents.length > 0) {
+                addCard.style.display = 'block';
+                lockMsg.style.display = 'none';
+                
+                openEvents.forEach(evt => {
+                    const dStr = evt.date.toLocaleDateString('en-GB', {weekday:'short'});
+                    checkboxGroup.innerHTML += `
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="chk-${evt.id}" value="${evt.id}" checked>
+                            <label for="chk-${evt.id}">${evt.title} (${dStr})</label>
+                        </div>`;
+                });
+            } else {
+                addCard.style.display = 'none';
+                lockMsg.style.display = 'block';
+            }
+
+            let q;
+            if (myRole === 'master_admin' || myRole === 'pastor') q = query(collection(db, "invitees"), where("pastorId", "==", currentUser.uid));
+            else q = query(collection(db, "invitees"), where("shepherdId", "==", currentUser.uid));
+            
+            const invSnap = await getDocs(q);
+            const allInvitees = invSnap.docs.map(d => ({id:d.id, ...d.data()})).filter(d => d.status !== 'graduated');
+
+            ACTIVE_EVENTS.forEach(evt => {
+                if (evt.isLocked) {
+                    const timeDiff = evt.date - new Date();
+                    const hours = Math.floor(timeDiff / 3600000);
+                    mainArea.innerHTML += `<div class="event-section" style="text-align:center; padding:30px; opacity:0.6;"><h3 style="color:var(--gold-primary); margin:0;">🔒 ${evt.title}</h3><p style="margin:5px 0;">Opens in approx ${Math.max(0, hours-48)} hours</p></div>`;
+                    return;
+                }
+
+                const pendingInvitees = allInvitees.filter(inv => {
+                    if (!inv.history) return true;
+                    return !inv.history.some(h => h.eventId === evt.id);
+                });
+
+                if (pendingInvitees.length === 0) return;
+
+                const dateStr = evt.date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+                
+                let itemsHtml = pendingInvitees.map(inv => `
+                    <div class="invitee-item">
+                        <div class="invitee-header">
+                            <div class="invitee-info"><h3>${inv.fullName}</h3><p>📍 ${inv.hostel || 'No Addr'} | 📞 ${inv.phone}</p></div>
+                            <button onclick="deleteInvitee('${inv.id}')" style="background:none; border:none; cursor:pointer; color:var(--text-dim);"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <div class="action-row">
+                            <button class="btn-action btn-absent" onclick="openReport('${inv.id}', '${inv.fullName}', '${evt.id}', '${evt.title}', '${evt.date}', 'absent')"><i class="fa-solid fa-xmark"></i> ABSENT</button>
+                            <button class="btn-action btn-present" onclick="openReport('${inv.id}', '${inv.fullName}', '${evt.id}', '${evt.title}', '${evt.date}', 'present')"><i class="fa-solid fa-check"></i> PRESENT</button>
+                        </div>
+                        <span class="promo-link" onclick="openPromo('${inv.id}')">Promote to Member 🎓</span>
+                    </div>`).join('');
+
+                mainArea.innerHTML += `
+                <div class="event-section">
+                    <div class="event-header">
+                        <div><span class="ev-title">${evt.title}</span><br><span class="ev-date">${dateStr}</span></div>
+                        <span class="ev-badge">${pendingInvitees.length} Pending</span>
+                    </div>
+                    <div class="list-container">${itemsHtml}</div>
+                </div>`;
+            });
+
+            if (mainArea.innerHTML === "" && openEvents.length > 0) mainArea.innerHTML = "<p style='text-align:center; padding:40px; opacity:0.6;'>No active targets.<br><small>Add a soul to get started.</small></p>";
+        }
+
+        window.addInvitee = async () => {
+            const name = document.getElementById('invName').value;
+            const phone = document.getElementById('invPhone').value;
+            const hostel = document.getElementById('invHostel').value;
+            if(!name) return alert("Full Name is required");
+            
+            let pastorId = currentUser.uid;
+            if (myRole === 'shepherd') {
+                const sSnap = await getDoc(doc(db, "shepherds", currentUser.uid));
+                pastorId = sSnap.data().assigned_pastor_id || sSnap.data().pastorId;
+            }
+
+            const initialHistory = [];
+            const checkboxes = document.querySelectorAll('#eventCheckboxes input[type="checkbox"]');
+            
+            checkboxes.forEach(chk => {
+                if (!chk.checked) {
+                    const evt = ACTIVE_EVENTS.find(e => e.id === chk.value);
+                    if (evt) {
+                        initialHistory.push({
+                            eventId: evt.id, eventName: evt.title, eventDate: evt.date,
+                            status: 'skipped', reason: "Not invited to this event", reportTimestamp: new Date()
+                        });
+                    }
+                }
+            });
+
+            await addDoc(collection(db, "invitees"), { 
+                fullName: name, phone, hostel, 
+                shepherdId: currentUser.uid, 
+                pastorId: pastorId, 
+                calls: 0, visits: 0, status: 'unmarked', 
+                lastUpdated: serverTimestamp(), 
+                history: initialHistory 
+            });
+            
+            location.reload();
+        };
+
+        window.openReport = (invId, invName, evtId, evtName, evtDate, status) => {
+            document.getElementById('reportId').value = invId; document.getElementById('reportTargetName').innerText = invName;
+            document.getElementById('reportEventId').value = evtId; document.getElementById('reportEventName').innerText = evtName;
+            document.getElementById('reportEventDate').value = evtDate; document.getElementById('reportStatus').value = status;
+            document.getElementById('reportCalls').innerText = "0"; document.getElementById('reportVisits').innerText = "0";
+            document.getElementById('reportReason').value = ""; document.getElementById('reasonSection').style.display = status === 'absent' ? 'block' : 'none';
+            document.getElementById('reportModal').style.display = 'flex';
+        };
+
+        window.submitReport = async () => {
+            const id = document.getElementById('reportId').value;
+            const evtId = document.getElementById('reportEventId').value;
+            const evtName = document.getElementById('reportEventName').innerText;
+            const evtDate = new Date(document.getElementById('reportEventDate').value);
+            const status = document.getElementById('reportStatus').value;
+            const calls = parseInt(document.getElementById('reportCalls').innerText);
+            const visits = parseInt(document.getElementById('reportVisits').innerText);
+            const reason = document.getElementById('reportReason').value;
+            if (status === 'absent' && !reason) return alert("Reason required.");
+
+            try {
+                const entry = { eventId: evtId, eventName: evtName, eventDate: evtDate, status: status === 'present' ? 'honoured' : 'declined', calls: calls, visits: visits, reason: reason || "N/A", reportTimestamp: new Date() };
+                await updateDoc(doc(db, "invitees", id), { history: arrayUnion(entry), lastUpdated: serverTimestamp(), calls: calls, visits: visits, status: status === 'present' ? 'honoured' : 'declined' });
+                document.getElementById('reportModal').style.display = 'none'; loadInvitees();
+            } catch(e) { alert("Error: " + e.message); }
+        };
+
+        window.adj = (id, val) => { const el = document.getElementById(id); let c = parseInt(el.innerText)+val; if(c<0)c=0; el.innerText=c; };
+        window.deleteInvitee = async (id) => { if(confirm("Delete Target?")) { await deleteDoc(doc(db, "invitees", id)); loadInvitees(); } };
+        window.openPromo = async (id) => { document.getElementById('promoId').value = id; document.getElementById('promoModal').style.display = 'flex'; };
+        
+        window.finalSubmitPromotion = async () => { 
+            const id = document.getElementById('promoId').value; 
+            try { 
+                const invSnap = await getDoc(doc(db, "invitees", id)); 
+                const d = invSnap.data(); 
+                await addDoc(collection(db, "members"), { 
+                    first_name: document.getElementById('promoFirstname').value, 
+                    last_name: document.getElementById('promoSurname').value, 
+                    full_name: `${document.getElementById('promoFirstname').value} ${document.getElementById('promoSurname').value}`, 
+                    phone: d.phone, status: "New Convert", pastorId: d.pastorId, shepherdId: d.shepherdId, timestamp: serverTimestamp() 
+                }); 
+                await updateDoc(doc(db, "invitees", id), { status: 'graduated' }); 
+                alert("Promoted!"); location.reload(); 
+            } catch(e) { alert(e.message); } 
+        };
+
+        document.getElementById('logoutBtn').onclick = (e) => {
+            e.preventDefault();
+            signOut(auth).then(() => window.location.href="../index.html");
+        };
+    </script>
+</body>
+</html>

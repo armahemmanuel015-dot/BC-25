@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Shepherd Dashboard | ShepherdNet</title>
+    
+    <link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- APP THEME (Global) --- */
+        :root {
+            --gold-primary: #F2A20C;
+            --gold-dark: #BF9C34;
+            --bg: #0f172a;
+            --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --sidebar-width: 260px;
+            --sidebar-mini: 80px;
+            --danger: #ff4b5c;
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --glass: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s;
+        }
+
+        /* --- SIDEBAR --- */
+        nav {
+            width: var(--sidebar-width);
+            background: var(--glass);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+        }
+
+        /* Mini Sidebar (Desktop Default) */
+        body.sidebar-mini nav { width: var(--sidebar-mini); padding: 30px 15px; }
+        body.sidebar-mini .profile-info, 
+        body.sidebar-mini nav a span:last-child, 
+        body.sidebar-mini .nav-label { display: none; }
+        body.sidebar-mini .logo-text { display: none; }
+        body.sidebar-mini .menu-toggle i { transform: rotate(180deg); }
+
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; color: var(--gold-primary); font-weight: 700; font-size: 1.2rem; white-space: nowrap; overflow: hidden; }
+        .logo-icon { width: 35px; height: 35px; object-fit: contain; }
+
+        .nav-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 10px 15px; font-weight: 600; }
+
+        nav a {
+            display: flex; align-items: center; gap: 15px;
+            color: var(--text-dim); text-decoration: none;
+            padding: 12px 15px; border-radius: 12px;
+            margin-bottom: 5px; transition: 0.2s; font-size: 0.9rem; font-weight: 500;
+            white-space: nowrap; position: relative;
+        }
+        nav a:hover, nav a.active { background: rgba(242, 162, 12, 0.1); color: var(--gold-primary); }
+        nav a i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            flex: 1; padding: 40px;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+            max-width: 1600px;
+        }
+        body.sidebar-mini main { margin-left: var(--sidebar-mini); }
+
+        /* --- CARDS --- */
+        header { margin-bottom: 30px; }
+        h1 { font-size: 1.8rem; font-weight: 600; }
+        p.subtitle { opacity: 0.6; font-size: 0.9rem; }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold-primary));
+            color: white; padding: 30px; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(242, 162, 12, 0.2);
+            cursor: pointer; transition: transform 0.2s;
+            position: relative; overflow: hidden;
+            max-width: 400px;
+        }
+        .stat-card:hover { transform: translateY(-5px); }
+        
+        /* Decorative Icon Background */
+        .stat-card::after {
+            content: '\f0c0'; /* FontAwesome Users Icon */
+            font-family: "Font Awesome 6 Free"; font-weight: 900;
+            position: absolute; right: -20px; bottom: -20px;
+            font-size: 120px; opacity: 0.15; transform: rotate(-15deg);
+        }
+
+        .stat-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; }
+        .stat-value { font-size: 3.5rem; font-weight: 700; line-height: 1.1; margin-top: 5px; }
+        .stat-link { font-size: 0.8rem; margin-top: 15px; display: inline-block; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px; backdrop-filter: blur(5px); }
+
+        /* Sidebar Toggle Button */
+        .menu-toggle {
+            position: absolute; right: -15px; top: 35px; width: 30px; height: 30px;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: var(--gold-primary); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1100;
+        }
+
+        /* Mobile Trigger */
+        .mobile-btn { display: none; position: fixed; top: 20px; right: 20px; z-index: 2000; background: var(--gold-primary); color: #fff; width: 45px; height: 45px; border-radius: 50%; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+
+        /* Mobile Overlay */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 900; opacity: 0; pointer-events: none; transition: 0.3s; }
+        body.mobile-open .overlay { opacity: 1; pointer-events: auto; }
+
+        /* --- MOBILE RESPONSIVENESS --- */
+        @media (max-width: 768px) {
+            nav { transform: translateX(-100%); width: 260px !important; }
+            body.mobile-open nav { transform: translateX(0); }
+            main { margin-left: 0 !important; padding: 80px 20px; }
+            .menu-toggle { display: none; }
+            .mobile-btn { display: flex; }
+            
+            body.sidebar-mini nav { width: 260px; } 
+            body.sidebar-mini .nav-label, body.sidebar-mini .logo-text, body.sidebar-mini nav a span:last-child { display: inline; }
+        }
+    </style>
+</head>
+<body class="sidebar-mini">
+
+    <div class="overlay" id="overlay"></div>
+    <div class="mobile-btn" id="mobileBtn"><i class="fa-solid fa-bars"></i></div>
+
+    <nav id="sidebar">
+        <div class="menu-toggle" id="sidebarToggle"><i class="fa-solid fa-chevron-left"></i></div>
+
+        <div class="logo-area">
+            <img src="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d" class="logo-icon">
+            <span class="logo-text">ShepherdNet</span>
+        </div>
+
+        <a href="../list/settings.html" style="background:rgba(255,255,255,0.03); margin-bottom:20px; text-decoration:none;">
+            <i class="fa-solid fa-user-circle" style="color:var(--gold-primary)"></i>
+            <span id="nav-name" style="font-weight:600; color:var(--text-main);">Loading...</span>
+        </a>
+
+        <div class="nav-label">Overview</div>
+        <a href="#" class="active"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a>
+        
+        <div class="nav-label">Ministry</div>
+        <a href="../registry/index.html"><i class="fa-solid fa-clipboard-check"></i> <span>Mark Attendance</span></a>
+        <a href="../list/index.html"><i class="fa-solid fa-users"></i> <span>My Flock</span></a>
+        <a href="../pastor/invitees.html"><i class="fa-solid fa-user-plus"></i> <span>Add New Soul</span></a>
+
+        <div class="nav-label">System</div>
+        <a href="../notifications.html"><i class="fa-solid fa-bell"></i> <span>Notifications</span></a>
+        <a href="../updates.html"><i class="fa-solid fa-rocket"></i> <span>What's New</span></a>
+
+        <div style="flex-grow:1"></div>
+        
+        <a href="#" id="themeToggle"><i class="fa-solid fa-moon"></i> <span>Theme</span></a>
+        <a href="#" id="logoutBtn" style="color:var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> <span>Sign Out</span></a>
+    </nav>
+
+    <main>
+        <header>
+            <h1>Welcome, Shepherd <span id="welcome-name" style="color:var(--gold-primary)">...</span></h1>
+            <p class="subtitle">Here is the status of the souls entrusted to your care.</p>
+        </header>
+
+        <div class="stat-card" onclick="location.href='../list/index.html'">
+            <div class="stat-label">Souls Under Your Care</div>
+            <div class="stat-value" id="flock-count">-</div>
+            <div class="stat-link">View Full List <i class="fa-solid fa-arrow-right"></i></div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { initializeFirestore, doc, getDoc, collection, query, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCBv60eRCO0e4dFBMKGKnIATouxTuk1Bcc", authDomain: "fob-database-139d1.firebaseapp.com", projectId: "fob-database-139d1", storageBucket: "fob-database-139d1.firebasestorage.app", appId: "1:375165731354:web:b5fa57dcb2d71ee0d8c7a3" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = initializeFirestore(app, { experimentalForceLongPolling: true }, "fobrealdbase");
+
+        // --- THEME & UI LOGIC ---
+        const body = document.body;
+        const themeBtn = document.getElementById('themeToggle');
+        const themeIcon = themeBtn.querySelector('i');
+        
+        // 1. Theme Sync
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeIcon.className = savedTheme === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+
+        themeBtn.onclick = (e) => {
+            e.preventDefault();
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            themeIcon.className = next === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        };
+
+        // 2. Sidebar Logic
+        document.getElementById('sidebarToggle').onclick = () => body.classList.toggle('sidebar-mini');
+        
+        const mobileBtn = document.getElementById('mobileBtn');
+        const overlay = document.getElementById('overlay');
+        
+        mobileBtn.onclick = () => body.classList.add('mobile-open');
+        overlay.onclick = () => body.classList.remove('mobile-open');
+
+        // --- DATA LOGIC ---
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = "/index.html"; return; }
+            
+            try {
+                const shepSnap = await getDoc(doc(db, "shepherds", user.uid));
+                if (shepSnap.exists()) {
+                    const data = shepSnap.data();
+                    // HONORIFIC LOGIC
+                    document.getElementById('welcome-name').innerText = `${data.full_name.split(' ')[0]}`;
+                    document.getElementById('nav-name').innerText = data.full_name.split(' ')[0];
+                }
+
+                const q = query(collection(db, "members"), where("shepherdId", "==", user.uid));
+                const countSnap = await getCountFromServer(q);
+                document.getElementById('flock-count').innerText = countSnap.data().count;
+
+            } catch (err) { console.error("Error loading dashboard:", err); }
+        });
+
+        document.getElementById('logoutBtn').onclick = (e) => {
+            e.preventDefault();
+            signOut(auth).then(() => window.location.href="/index.html");
+        };
+    </script>
+</body>
+</html>

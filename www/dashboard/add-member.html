@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Add Member | ShepherdNet</title>
+    
+    <link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- APP THEME --- */
+        :root {
+            --gold-primary: #F2A20C;
+            --gold-dark: #BF9C34;
+            --bg: #0f172a;
+            --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --danger: #ff4b5c;
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --glass: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+            --input-bg: #f1f5f9;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex; justify-content: center; align-items: flex-start;
+            padding: 40px 20px;
+            transition: background 0.3s;
+        }
+
+        /* --- BACKGROUNDS --- */
+        .bg-image {
+            position: fixed; inset: 0;
+            background: url('https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+            opacity: 0.1; z-index: -2; filter: sepia(30%);
+        }
+        .bg-overlay {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, transparent 0%, var(--bg) 90%);
+            z-index: -1;
+        }
+
+        /* --- CARD CONTAINER --- */
+        .container {
+            width: 100%; max-width: 500px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        /* Header */
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
+        .back-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            width: 40px; height: 40px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-main); cursor: pointer; transition: 0.2s;
+        }
+        .back-btn:hover { border-color: var(--gold-primary); color: var(--gold-primary); }
+        h1 { font-size: 1.2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--gold-primary); }
+
+        /* Photo Upload */
+        .photo-area { text-align: center; margin-bottom: 25px; }
+        .avatar-wrapper {
+            width: 100px; height: 100px; margin: 0 auto 10px;
+            border-radius: 50%; border: 3px solid var(--gold-primary);
+            position: relative; cursor: pointer; overflow: hidden;
+            background: var(--input-bg); display: flex; align-items: center; justify-content: center;
+        }
+        .avatar-wrapper img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .avatar-placeholder { font-size: 2rem; color: var(--text-dim); }
+        .upload-icon {
+            position: absolute; bottom: 0; width: 100%;
+            background: rgba(0,0,0,0.6); color: white;
+            font-size: 0.7rem; padding: 4px 0; text-align: center;
+        }
+
+        /* Form Sections */
+        .section-title {
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--text-dim); margin: 20px 0 10px 0; font-weight: 600;
+            border-bottom: 1px solid var(--border); padding-bottom: 5px;
+        }
+
+        .input-row { display: flex; gap: 10px; }
+        .input-group { margin-bottom: 12px; width: 100%; }
+        
+        input, select {
+            width: 100%; padding: 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-main); font-size: 0.95rem; font-family: inherit;
+            outline: none; transition: 0.3s;
+            appearance: none; /* Mobile Styling Fix */
+        }
+        input:focus, select:focus { border-color: var(--gold-primary); background: rgba(242, 162, 12, 0.05); }
+        
+        select option { background: #1e293b; color: white; } /* Dark mode dropdown fix */
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%; padding: 16px; margin-top: 30px;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold-primary));
+            border: none; border-radius: 12px;
+            color: white; font-weight: 700; font-size: 1rem;
+            cursor: pointer; box-shadow: 0 5px 20px rgba(242, 162, 12, 0.3);
+            transition: 0.2s;
+        }
+        .btn-submit:disabled { opacity: 0.6; cursor: wait; }
+        .btn-submit:active { transform: scale(0.98); }
+
+        #roleDisplay { font-size: 0.75rem; text-align: center; color: var(--gold-dark); margin-bottom: 20px; font-weight: 500; }
+        #ageDisplay { font-size: 0.75rem; color: var(--gold-primary); margin-top: 5px; text-align: right; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-image"></div>
+    <div class="bg-overlay"></div>
+
+    <div class="container">
+        <div class="header">
+            <div class="back-btn" id="backBtn"><i class="fa-solid fa-arrow-left"></i></div>
+            <h1>New Soul Entry</h1>
+            <div style="width:40px;"></div> </div>
+
+        <div id="roleDisplay"><i class="fa-solid fa-circle-notch fa-spin"></i> Verifying Role...</div>
+
+        <div class="photo-area" onclick="document.getElementById('mPhotoFile').click()">
+            <div class="avatar-wrapper">
+                <img id="previewImg">
+                <i class="fa-solid fa-user avatar-placeholder" id="avatarIcon"></i>
+                <div class="upload-icon">PHOTO</div>
+            </div>
+            <p style="font-size:0.7rem; color:var(--text-dim);">Tap circle to upload</p>
+            <input type="file" id="mPhotoFile" accept="image/*" style="display:none;">
+        </div>
+
+        <div class="section-title">Identity</div>
+        <div class="input-group">
+            <input type="text" id="mSurname" placeholder="Surname (Last Name)" required>
+        </div>
+        <div class="input-row">
+            <input type="text" id="mFirstname" placeholder="First Name" required>
+            <input type="text" id="mOthername" placeholder="Other Names">
+        </div> <br>
+        <div class="input-row">
+            <select id="mGender">
+                <option value="" disabled selected>Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+            <div style="width:100%">
+                <input type="date" id="mBirthday" onchange="calculateAge()">
+                <div id="ageDisplay"></div>
+            </div>
+        </div>
+
+        <div class="section-title">Contact & Location</div>
+        <div class="input-group">
+            <input type="tel" id="mPhone" placeholder="Phone Number (0XX...)">
+        </div>
+        <div class="input-group">
+            <input type="text" id="mHostel" placeholder="Residence / Hostel">
+        </div>
+
+        <div class="section-title">Status & Education</div>
+        <div class="input-row">
+            <select id="mStatus">
+                <option value="New Convert">New Convert</option>
+                <option value="Established Member">Established Member</option>
+            </select>
+            <select id="mLevel">
+                <option value="" selected disabled>Level</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+                <option value="300">300</option>
+                <option value="400">400</option>
+                <option value="500">500</option>
+                <option value="600">600</option>
+                <option value="Alumnus">Alumnus</option>
+                <option value="Worker">Worker</option>
+            </select>
+        </div> <br>
+        <div class="input-group">
+            <input type="text" id="mCourse" placeholder="Course / Occupation">
+        </div>
+
+        <button id="saveBtn" class="btn-submit" disabled>Save to Registry</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCBv60eRCO0e4dFBMKGKnIATouxTuk1Bcc", authDomain: "fob-database-139d1.firebaseapp.com", projectId: "fob-database-139d1", storageBucket: "fob-database-139d1.firebasestorage.app", appId: "1:375165731354:web:b5fa57dcb2d71ee0d8c7a3" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app, "fobrealdbase");
+        const storage = getStorage(app);
+
+        let pId = null;
+        let sId = null;
+        let returnUrl = "../index.html";
+
+        // --- THEME CHECK ---
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        // --- AUTH & ROLE ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const roleDisplay = document.getElementById('roleDisplay');
+                const btn = document.getElementById('saveBtn');
+                
+                try {
+                    // Check Shepherd
+                    const shepSnap = await getDoc(doc(db, "shepherds", user.uid));
+                    if (shepSnap.exists()) {
+                        sId = user.uid;
+                        pId = shepSnap.data().assigned_pastor_id || "unassigned";
+                        roleDisplay.innerHTML = `<i class="fa-solid fa-user-check"></i> Connected as Shepherd: <b>${shepSnap.data().full_name}</b>`;
+                        returnUrl = "../shepherd/index.html";
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    // Check Pastor
+                    const pastSnap = await getDoc(doc(db, "pastors", user.uid));
+                    if (pastSnap.exists()) {
+                        pId = user.uid;
+                        sId = "direct_pastor_entry";
+                        roleDisplay.innerHTML = `<i class="fa-solid fa-user-tie"></i> Connected as Pastor: <b>${pastSnap.data().full_name}</b>`;
+                        returnUrl = "../pastor/index.html";
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    // Check Admin
+                    const adminSnap = await getDoc(doc(db, "master_admin", user.uid));
+                    if (adminSnap.exists()) {
+                        pId = user.uid; // Admin acts as root pastor for their entries
+                        sId = "master_admin_entry";
+                        roleDisplay.innerHTML = `<i class="fa-solid fa-crown"></i> Global Admin Access`;
+                        returnUrl = "../admin/index.html";
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    roleDisplay.innerText = "Error: Unauthorized Account.";
+                } catch (e) {
+                    console.error(e);
+                    roleDisplay.innerText = "Connection Error";
+                }
+            } else { window.location.href = "../index.html"; }
+        });
+
+        // --- UI LOGIC ---
+        // Back Button
+        document.getElementById('backBtn').onclick = () => window.location.href = returnUrl;
+
+        // Image Preview
+        document.getElementById('mPhotoFile').onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                const img = document.getElementById('previewImg');
+                img.src = url;
+                img.style.display = 'block';
+                document.getElementById('avatarIcon').style.display = 'none';
+            }
+        };
+
+        // Age Calc
+        window.calculateAge = () => {
+            const dob = new Date(document.getElementById('mBirthday').value);
+            const diff = Date.now() - dob.getTime();
+            const age = new Date(diff).getUTCFullYear() - 1970;
+            if(age >= 0) document.getElementById('ageDisplay').innerText = `${age} years old`;
+        };
+
+        // --- SAVE LOGIC ---
+        document.getElementById('saveBtn').onclick = async () => {
+            const btn = document.getElementById('saveBtn');
+            const phone = document.getElementById('mPhone').value.trim();
+            const photoFile = document.getElementById('mPhotoFile').files[0];
+
+            if(!document.getElementById('mSurname').value || !document.getElementById('mFirstname').value) {
+                alert("Name fields are required."); return;
+            }
+            if(!phone) { alert("Phone Number is required."); return; }
+
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+
+            try {
+                // 1. Check Duplicates
+                const dupCheck = await getDocs(query(collection(db, "members"), where("phone", "==", phone)));
+                if (!dupCheck.empty) throw new Error("This phone number is already registered.");
+
+                // 2. Upload Photo
+                let photoUrl = null;
+                if (photoFile) {
+                    btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Uploading Photo...';
+                    const sRef = ref(storage, `member_photos/${phone}_${Date.now()}`);
+                    await uploadBytes(sRef, photoFile);
+                    photoUrl = await getDownloadURL(sRef);
+                }
+
+                // 3. Save Data
+                btn.innerHTML = '<i class="fa-solid fa-save"></i> Saving Data...';
+                const dobVal = document.getElementById('mBirthday').value;
+                
+                await addDoc(collection(db, "members"), {
+                    last_name: document.getElementById('mSurname').value,
+                    first_name: document.getElementById('mFirstname').value,
+                    other_names: document.getElementById('mOthername').value,
+                    full_name: `${document.getElementById('mFirstname').value} ${document.getElementById('mSurname').value}`,
+                    gender: document.getElementById('mGender').value,
+                    dob: dobVal,
+                    dob_day_month: dobVal ? dobVal.substring(5) : null,
+                    phone: phone,
+                    hostel: document.getElementById('mHostel').value,
+                    level: document.getElementById('mLevel').value,
+                    course: document.getElementById('mCourse').value,
+                    status: document.getElementById('mStatus').value,
+                    photo_url: photoUrl,
+                    recorded_by: auth.currentUser.uid,
+                    pastorId: pId,
+                    shepherdId: sId,
+                    timestamp: new Date().toISOString()
+                });
+
+                alert("Member Added Successfully!");
+                window.location.reload();
+
+            } catch (e) {
+                alert(e.message);
+                btn.disabled = false;
+                btn.innerHTML = "Save to Registry";
+            }
+        };
+    </script>
+</body>
+</html>

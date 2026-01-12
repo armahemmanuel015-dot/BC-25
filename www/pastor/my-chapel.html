@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>My Chapel | ShepherdNet</title>
+    
+    <link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- APP THEME --- */
+        :root {
+            --gold-primary: #F2A20C;
+            --gold-dark: #BF9C34;
+            --bg: #0f172a;
+            --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --sidebar-width: 260px;
+            --sidebar-mini: 80px;
+            --danger: #ff4b5c;
+            --success: #00ff88;
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --glass: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s;
+        }
+
+        /* --- SIDEBAR --- */
+        nav {
+            width: var(--sidebar-width);
+            background: var(--glass);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+        }
+
+        body.sidebar-mini nav { width: var(--sidebar-mini); padding: 30px 15px; }
+        body.sidebar-mini .profile-info, 
+        body.sidebar-mini nav a span:last-child, 
+        body.sidebar-mini .nav-label { display: none; }
+        body.sidebar-mini .logo-text { display: none; }
+        body.sidebar-mini .menu-toggle i { transform: rotate(180deg); }
+
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; color: var(--gold-primary); font-weight: 700; font-size: 1.2rem; white-space: nowrap; overflow: hidden; }
+        .logo-icon { width: 35px; height: 35px; object-fit: contain; }
+
+        nav a {
+            display: flex; align-items: center; gap: 15px;
+            color: var(--text-dim); text-decoration: none;
+            padding: 12px 15px; border-radius: 12px;
+            margin-bottom: 5px; transition: 0.2s; font-size: 0.9rem; font-weight: 500;
+            white-space: nowrap; position: relative;
+        }
+        nav a:hover, nav a.active { background: rgba(242, 162, 12, 0.1); color: var(--gold-primary); }
+        nav a i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            flex: 1; padding: 40px;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+            max-width: 1200px;
+        }
+        body.sidebar-mini main { margin-left: var(--sidebar-mini); }
+
+        /* --- HEADER & SUMMARY --- */
+        header { margin-bottom: 30px; }
+        h1 { font-size: 1.5rem; font-weight: 600; margin: 0; color: var(--gold-primary); }
+        
+        .summary-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px; margin-bottom: 40px;
+        }
+        .summary-card {
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 20px; border-radius: 16px; position: relative; overflow: hidden;
+        }
+        .summary-card h3 { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 5px; }
+        .summary-val { font-size: 1.8rem; font-weight: 700; }
+        .summary-card i { position: absolute; right: 20px; bottom: 20px; font-size: 2.5rem; opacity: 0.1; }
+
+        /* --- SHEPHERD CARDS --- */
+        .shepherd-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        
+        .shepherd-card {
+            background: var(--glass); border: 1px solid var(--border);
+            border-radius: 20px; padding: 25px; transition: 0.2s;
+            position: relative; display: flex; flex-direction: column;
+        }
+        .shepherd-card:hover { transform: translateY(-5px); border-color: var(--gold-primary); }
+        
+        .card-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .s-avatar { 
+            width: 50px; height: 50px; border-radius: 50%; background: #334155; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: 700; color: var(--gold-primary); border: 2px solid var(--border);
+        }
+        
+        .stats-row { display: flex; justify-content: space-between; padding-top: 15px; border-top: 1px solid var(--border); margin-top: auto; }
+        .stat-item { text-align: center; }
+        .stat-label { display: block; font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; }
+        .stat-num { font-weight: 700; font-size: 1rem; }
+
+        .health-badge {
+            position: absolute; top: 20px; right: 20px;
+            font-size: 0.6rem; padding: 3px 8px; border-radius: 6px;
+            text-transform: uppercase; font-weight: 700;
+        }
+        .h-good { background: rgba(0, 255, 136, 0.15); color: var(--success); }
+        .h-avg { background: rgba(242, 162, 12, 0.15); color: var(--gold-primary); }
+        .h-bad { background: rgba(255, 75, 92, 0.15); color: var(--danger); }
+
+        /* Sidebar Toggle */
+        .menu-toggle {
+            position: absolute; right: -15px; top: 35px; width: 30px; height: 30px;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: var(--gold-primary); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1100;
+        }
+
+        .mobile-btn { display: none; position: fixed; top: 20px; right: 20px; z-index: 2000; background: var(--gold-primary); color: #fff; width: 45px; height: 45px; border-radius: 50%; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 900; opacity: 0; pointer-events: none; transition: 0.3s; }
+        body.mobile-open .overlay { opacity: 1; pointer-events: auto; }
+
+        @media (max-width: 768px) {
+            nav { transform: translateX(-100%); width: 260px !important; }
+            body.mobile-open nav { transform: translateX(0); }
+            main { margin-left: 0 !important; padding: 100px 20px 40px 20px; }
+            .menu-toggle { display: none; }
+            .mobile-btn { display: flex; }
+            body.sidebar-mini nav { width: 260px; } 
+            body.sidebar-mini .nav-label, body.sidebar-mini .logo-text, body.sidebar-mini nav a span:last-child { display: inline; }
+        }
+    </style>
+</head>
+<body class="sidebar-mini">
+
+    <div class="overlay" id="overlay"></div>
+    <div class="mobile-btn" id="mobileBtn"><i class="fa-solid fa-bars"></i></div>
+
+    <nav id="sidebar">
+        <div class="menu-toggle" id="sidebarToggle"><i class="fa-solid fa-chevron-left"></i></div>
+
+        <div class="logo-area">
+            <img src="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d" class="logo-icon">
+            <span class="logo-text">ShepherdNet</span>
+        </div>
+
+        <a href="index.html">
+            <i class="fa-solid fa-arrow-left"></i> <span>Dashboard</span>
+        </a>
+        
+        <div class="nav-label">Reports</div>
+        <a href="#" class="active"><i class="fa-solid fa-chart-simple"></i> <span>Chapel Stats</span></a>
+        
+        <div style="flex-grow:1"></div>
+        
+        <a href="#" id="themeToggle"><i class="fa-solid fa-moon"></i> <span>Theme</span></a>
+        <a href="#" id="logoutBtn" style="color:var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> <span>Sign Out</span></a>
+    </nav>
+
+    <main>
+        <header>
+            <h1 id="chapelTitle">Loading Chapel...</h1>
+            <p style="opacity:0.6; font-size:0.9rem;" id="pastorName">Fetching performance metrics...</p>
+        </header>
+
+        <div class="summary-grid">
+            <div class="summary-card">
+                <h3>Total Flock</h3>
+                <div class="summary-val" id="totalMembers">-</div>
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="summary-card">
+                <h3>Attendance</h3>
+                <div class="summary-val" id="avgAttendance" style="color:var(--success)">-</div>
+                <i class="fa-solid fa-clipboard-check"></i>
+            </div>
+            <div class="summary-card">
+                <h3>Conversion</h3>
+                <div class="summary-val" id="convHealth">-</div>
+                <i class="fa-solid fa-arrow-trend-up"></i>
+            </div>
+        </div>
+
+        <h3 style="margin-bottom:20px; text-transform:uppercase; font-size:0.8rem; letter-spacing:1px; color:var(--text-dim);">Shepherd Leaderboard</h3>
+        
+        <div class="shepherd-list" id="shepherdGrid">
+            <p style="opacity:0.5; padding:20px;">Analyzing shepherd performance...</p>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCBv60eRCO0e4dFBMKGKnIATouxTuk1Bcc", authDomain: "fob-database-139d1.firebaseapp.com", projectId: "fob-database-139d1", storageBucket: "fob-database-139d1.firebasestorage.app", appId: "1:375165731354:web:b5fa57dcb2d71ee0d8c7a3" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app, "fobrealdbase");
+
+        // --- THEME & UI ---
+        const body = document.body;
+        const themeBtn = document.getElementById('themeToggle');
+        const themeIcon = themeBtn.querySelector('i');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeIcon.className = savedTheme === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+
+        themeBtn.onclick = (e) => {
+            e.preventDefault();
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            themeIcon.className = next === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        };
+
+        document.getElementById('sidebarToggle').onclick = () => body.classList.toggle('sidebar-mini');
+        const mobileBtn = document.getElementById('mobileBtn');
+        const overlay = document.getElementById('overlay');
+        mobileBtn.onclick = () => body.classList.add('mobile-open');
+        overlay.onclick = () => body.classList.remove('mobile-open');
+
+        // --- DATA LOGIC ---
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = "../index.html"; return; }
+            
+            try {
+                // 1. Get Pastor Details
+                const pDoc = await getDoc(doc(db, "pastors", user.uid));
+                const pData = pDoc.exists() ? pDoc.data() : { full_name: "Pastor", chapel_name: "My Chapel" };
+                
+                document.getElementById('chapelTitle').innerText = pData.chapel_name || "My Chapel";
+                document.getElementById('pastorName').innerText = `Overseer: ${pData.full_name}`;
+
+                // 2. Fetch Global Events (for attendance calc)
+                const eSnap = await getDocs(collection(db, "events"));
+                const now = new Date();
+                const validDates = [];
+                eSnap.forEach(d => {
+                    const data = d.data();
+                    const title = (data.title || data.name || "").toLowerCase();
+                    if (title.includes("dawn prayer")) return;
+                    const dDate = data.date && data.date.toDate ? data.date.toDate() : new Date(data.date);
+                    if (dDate <= now) validDates.push(data.dateString || dDate.toISOString().split('T')[0]);
+                });
+                validDates.sort();
+
+                // 3. Fetch Shepherds & Members
+                const [sSnap, mSnap, aSnap] = await Promise.all([
+                    getDocs(query(collection(db, "shepherds"), where("assigned_pastor_id", "==", user.uid))),
+                    getDocs(query(collection(db, "members"), where("pastorId", "==", user.uid))),
+                    getDocs(query(collection(db, "attendance"), where("pastorId", "==", user.uid)))
+                ]);
+
+                // Map Attendance
+                const attendanceLog = {};
+                aSnap.forEach(d => {
+                    const att = d.data();
+                    if(att.status && att.status.toLowerCase().includes('present')) {
+                        const dStr = att.dateString || (att.timestamp ? att.timestamp.toDate().toISOString().split('T')[0] : null);
+                        if(dStr) attendanceLog[`${att.memberId}_${dStr}`] = true;
+                    }
+                });
+
+                // Build Shepherd Stats
+                const shepherds = [];
+                const directFlock = { id: 'direct', name: 'Direct Oversight', members: [], score: 0 };
+                
+                const sMap = {};
+                sSnap.forEach(s => {
+                    sMap[s.id] = { id: s.id, name: s.data().full_name, members: [], score: 0 };
+                });
+
+                mSnap.forEach(m => {
+                    const mem = m.data();
+                    const sId = mem.shepherdId;
+                    const entry = { id: m.id, joined: mem.registration_date };
+                    
+                    if (sId && sMap[sId]) sMap[sId].members.push(entry);
+                    else directFlock.members.push(entry);
+                });
+
+                // Calculate Scores function
+                const calcScore = (membersList) => {
+                    if(membersList.length === 0) return 0;
+                    let sum = 0;
+                    let count = 0;
+                    membersList.forEach(mem => {
+                        const joinDate = mem.joined ? new Date(mem.joined) : new Date('2024-01-01');
+                        const joinStr = joinDate.toISOString().split('T')[0];
+                        const eligible = validDates.filter(d => d >= joinStr);
+                        if(eligible.length > 0) {
+                            let p = 0;
+                            eligible.forEach(d => { if(attendanceLog[`${mem.id}_${d}`]) p++; });
+                            sum += (p / eligible.length) * 100;
+                            count++;
+                        }
+                    });
+                    return count > 0 ? Math.round(sum / count) : 0;
+                };
+
+                // Finalize Lists
+                Object.values(sMap).forEach(s => {
+                    s.score = calcScore(s.members);
+                    shepherds.push(s);
+                });
+                directFlock.score = calcScore(directFlock.members);
+                if(directFlock.members.length > 0) shepherds.push(directFlock);
+
+                shepherds.sort((a,b) => b.score - a.score);
+
+                // Render UI
+                const grid = document.getElementById('shepherdGrid');
+                if(shepherds.length === 0) {
+                    grid.innerHTML = '<p style="opacity:0.5;">No shepherds or members found.</p>';
+                } else {
+                    grid.innerHTML = shepherds.map((s, i) => {
+                        let badge = 'h-bad'; let text = 'Low';
+                        if(s.score > 70) { badge = 'h-good'; text = 'Excellent'; }
+                        else if(s.score > 40) { badge = 'h-avg'; text = 'Average'; }
+                        
+                        return `
+                        <div class="shepherd-card">
+                            <div class="health-badge ${badge}">${text}</div>
+                            <div class="card-header">
+                                <div class="s-avatar">${s.name.charAt(0)}</div>
+                                <div>
+                                    <div style="font-size:0.9rem; font-weight:600;">${s.name}</div>
+                                    <div style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase;">Rank #${i+1}</div>
+                                </div>
+                            </div>
+                            <div class="stats-row">
+                                <div class="stat-item">
+                                    <span class="stat-label">Souls</span>
+                                    <span class="stat-num">${s.members.length}</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Attendance</span>
+                                    <span class="stat-num" style="color:${s.score > 70 ? 'var(--success)' : 'var(--text-main)'}">${s.score}%</span>
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('');
+                }
+
+                // Summary Stats
+                const totalM = mSnap.size;
+                const totalScore = shepherds.reduce((acc, s) => acc + s.score, 0);
+                const avgScore = shepherds.length > 0 ? Math.round(totalScore / shepherds.length) : 0;
+                
+                document.getElementById('totalMembers').innerText = totalM;
+                document.getElementById('avgAttendance').innerText = `${avgScore}%`;
+                
+                // Simple conversion estimation (mock logic for now based on 'Established')
+                let established = 0;
+                mSnap.forEach(m => { if(m.data().status === 'Established Member') established++; });
+                const conv = totalM > 0 ? Math.round((established/totalM)*100) : 0;
+                document.getElementById('convHealth').innerText = `${conv}%`;
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('chapelTitle').innerText = "Error Loading Data";
+            }
+        });
+
+        document.getElementById('logoutBtn').onclick = (e) => {
+            e.preventDefault();
+            signOut(auth).then(() => window.location.href="/index.html");
+        };
+    </script>
+</body>
+</html>

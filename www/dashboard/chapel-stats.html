@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligence | ShepherdNet Pro</title>
+    <link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root { 
+            --gold-primary: #F2A20C; 
+            --gold-dark: #BF9C34;
+            --bg: #0f172a; 
+            --glass: rgba(15, 23, 42, 0.95);
+            --border: rgba(255, 255, 255, 0.08);
+            --sidebar-width: 260px;
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.6);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            background: var(--bg); 
+            color: var(--text-main); 
+            font-family: 'Poppins', sans-serif; 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar { 
+            position: fixed;
+            left: 0; top: 0; bottom: 0;
+            width: var(--sidebar-width); 
+            background: rgba(15, 23, 42, 0.98); 
+            border-right: 1px solid var(--border); 
+            display: flex; 
+            flex-direction: column; 
+            padding: 30px 20px; 
+            backdrop-filter: blur(20px); 
+            z-index: 2000;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        /* This class makes the sidebar visible */
+        body.sidebar-open .sidebar { transform: translateX(0); }
+
+        .logo { 
+            font-weight: 600; font-size: 1.4rem; margin-bottom: 40px; 
+            display: flex; align-items: center; gap: 12px; color: var(--gold-primary); 
+        }
+
+        .nav-group { flex: 1; }
+        
+        .nav-item { 
+            padding: 14px 18px; border-radius: 12px; cursor: pointer; 
+            display: flex; align-items: center; gap: 12px;
+            color: var(--text-dim); text-decoration: none; transition: 0.2s; 
+            margin-bottom: 8px; font-size: 0.95rem;
+        }
+
+        .nav-item:hover, .nav-item.active { 
+            background: rgba(255,255,255,0.05); color: var(--gold-primary); 
+            border: 1px solid var(--border); 
+        }
+
+        #btnLogout { margin-top: auto; color: #ff4b5c; }
+
+        /* --- MAIN CONTENT --- */
+        .main-content { 
+            flex: 1; overflow-y: auto; padding: 40px; 
+            scroll-behavior: smooth; position: relative;
+            transition: 0.3s;
+            width: 100%; /* Ensure full width on mobile */
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        header { margin-bottom: 40px; }
+        header h1 { font-size: 1.8rem; letter-spacing: -0.5px; color: var(--gold-primary); }
+
+        /* --- ANALYTICS --- */
+        .analytics-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 20px; margin-bottom: 30px; 
+        }
+
+        .chart-card { 
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border); 
+            padding: 25px; border-radius: 24px; 
+            min-height: 350px; 
+            display: flex; flex-direction: column;
+        }
+
+        .chart-container {
+            flex: 1; position: relative; width: 100%; min-height: 250px;
+        }
+
+        .chart-card h3 { 
+            font-size: 0.75rem; color: var(--text-dim); 
+            text-transform: uppercase; text-align: center; 
+            margin-bottom: 20px; letter-spacing: 1px;
+        }
+
+        /* --- TABLE --- */
+        .card { 
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border); 
+            padding: 25px; border-radius: 24px; 
+            overflow: hidden; /* Prevent overflow issues */
+        }
+
+        .table-header { 
+            display: flex; justify-content: space-between; 
+            align-items: center; margin-bottom: 25px; 
+            flex-wrap: wrap; gap: 15px; 
+        }
+
+        .search-box { position: relative; flex: 1; min-width: 250px; }
+        .search-box i { 
+            position: absolute; left: 15px; top: 50%; 
+            transform: translateY(-50%); color: var(--text-dim); 
+        }
+        .search-box input { 
+            width: 100%; background: rgba(255,255,255,0.05); 
+            border: 1px solid var(--border); 
+            padding: 12px 12px 12px 40px; border-radius: 14px; 
+            color: white; font-family: inherit; outline: none; transition: 0.3s;
+        }
+        .search-box input:focus { border-color: var(--gold-primary); background: rgba(255,255,255,0.1); }
+
+        .table-container { overflow-x: auto; width: 100%; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        
+        th { 
+            text-align: left; font-size: 0.75rem; color: var(--text-dim); 
+            padding: 12px; border-bottom: 1px solid var(--border); 
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        td { padding: 16px 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        
+        .rank-badge { 
+            padding: 5px 12px; border-radius: 8px; 
+            font-weight: 600; font-size: 0.75rem; 
+        }
+        .high { background: rgba(0, 255, 136, 0.1); color: #00ff88; }
+        .mid { background: rgba(241, 196, 15, 0.1); color: #f1c40f; }
+        .low { background: rgba(255, 75, 92, 0.1); color: #ff4b5c; }
+
+        /* --- MOBILE TOGGLE BUTTON --- */
+        .menu-btn {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 60px; height: 60px;
+            background: var(--gold-primary); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: #0f172a; cursor: pointer;
+            z-index: 2100; box-shadow: 0 10px 25px rgba(242, 162, 12, 0.4);
+            border: none;
+        }
+
+        .overlay {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); 
+            backdrop-filter: blur(4px); z-index: 1500; 
+            display: none; opacity: 0; transition: 0.3s;
+        }
+
+        /* Mobile State */
+        body.sidebar-open .overlay { display: block; opacity: 1; }
+
+        /* DESKTOP VIEWPORT */
+        @media (min-width: 1024px) {
+            .sidebar { position: relative; transform: translateX(0); }
+            .menu-btn, .overlay { display: none !important; }
+            .main-content { padding: 60px; }
+        }
+
+        @media (max-width: 600px) {
+            .main-content { padding: 25px 20px 80px 20px; }
+            header h1 { font-size: 1.4rem; }
+            .chart-card { min-height: 300px; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="menu-btn" id="menuBtn">
+        <i class="fa-solid fa-bars-staggered"></i>
+    </button>
+
+    <div class="overlay" id="overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">ShepherdNet</div>
+        <nav class="nav-group">
+            <a href="#" class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Leaderboards</a>
+            <a href="../admin/index.html" class="nav-item" id="btnSettings"><i class="fa-solid fa-sliders"></i> Dashboard</a>
+        </nav>
+        <div class="nav-item" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</div>
+    </aside>
+
+    <main class="main-content">
+        <div class="container">
+            <header>
+                <h1>Soul Statistics Audit</h1>
+                <p style="color:var(--text-dim); font-size: 0.9rem;" id="syncText">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Synchronizing Network Data...
+                </p>
+            </header>
+
+            <div class="analytics-grid">
+                <div class="chart-card">
+                    <h3>Members Maturity</h3>
+                    <div class="chart-container">
+                        <canvas id="maturityPie"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>Attendance Leaders (Top 5)</h3>
+                    <div class="chart-container">
+                        <canvas id="attendanceBar"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-header">
+                    <h3 style="font-weight: 500;">Leader Registry</h3>
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="leaderSearch" placeholder="Search Pastor or Chapel...">
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Leader / Chapel</th>
+                                <th>Members</th>
+                                <th>Att. %</th>
+                                <th>Conv. %</th>
+                                <th>Health</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyCBv60eRCO0e4dFBMKGKnIATouxTuk1Bcc", authDomain: "fob-database-139d1.firebaseapp.com", projectId: "fob-database-139d1", appId: "1:375165731354:web:b5fa57dcb2d71ee0d8c7a3" };
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app, "fobrealdbase");
+    const auth = getAuth(app);
+
+    // GLOBALS
+    let globalAuditData = [];
+    let pieChartInstance = null;
+    let barChartInstance = null;
+
+    const menuBtn = document.getElementById('menuBtn');
+    const overlay = document.getElementById('overlay');
+    const body = document.body;
+    const searchInput = document.getElementById('leaderSearch');
+    const btnLogout = document.getElementById('btnLogout');
+
+    if(menuBtn) menuBtn.addEventListener('click', () => body.classList.toggle('sidebar-open'));
+    if(overlay) overlay.addEventListener('click', () => body.classList.remove('sidebar-open'));
+    if(btnLogout) btnLogout.addEventListener('click', () => signOut(auth));
+    
+    if(searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = globalAuditData.filter(l => 
+                l.name.toLowerCase().includes(term) || l.chapel.toLowerCase().includes(term)
+            );
+            renderTable(filtered);
+        });
+    }
+
+    async function loadGlobalDashboard() {
+        try {
+            console.log("--- STARTING INTELLIGENCE AUDIT ---");
+
+            // 1. FETCH ALL DATA
+            const [pSnap, mAdminSnap, mSnap, aSnap, eSnap] = await Promise.all([
+                getDocs(collection(db, "pastors")),
+                getDocs(collection(db, "master_admin")),
+                getDocs(collection(db, "members")),
+                getDocs(collection(db, "attendance")),
+                getDocs(collection(db, "events"))
+            ]);
+
+            // 2. PROCESS EVENTS
+            const now = new Date();
+            const validServiceDates = [];
+            const eventIdToDateMap = {};
+
+            eSnap.forEach(d => {
+                const data = d.data();
+                const title = (data.title || data.name || "").toLowerCase();
+                
+                // FILTER: Exclude Dawn Prayers
+                if (title.includes("dawn prayer")) return;
+
+                const evDate = data.date && data.date.toDate ? data.date.toDate() : new Date(data.date);
+                
+                if (evDate <= now) {
+                    const dateStr = data.dateString || evDate.toISOString().split('T')[0];
+                    validServiceDates.push(dateStr);
+                    eventIdToDateMap[d.id] = dateStr; 
+                }
+            });
+            
+            validServiceDates.sort();
+
+            // 3. PROCESS ATTENDANCE
+            const attendanceLog = {}; 
+
+            aSnap.forEach(d => {
+                const data = d.data();
+                let dateStr = null;
+                
+                if (data.dateString) dateStr = data.dateString;
+                else if (data.timestamp) dateStr = data.timestamp.toDate().toISOString().split('T')[0];
+                else if (data.date) dateStr = new Date(data.date).toISOString().split('T')[0];
+                else if (data.eventId && eventIdToDateMap[data.eventId]) dateStr = eventIdToDateMap[data.eventId];
+
+                if (dateStr && data.status && data.status.toLowerCase().includes('present')) {
+                    attendanceLog[`${data.memberId}_${dateStr}`] = true;
+                }
+            });
+
+            // 4. FETCH MEMBERS
+            const allMembers = [];
+            mSnap.forEach(d => allMembers.push({ id: d.id, ...d.data() }));
+            
+            // 5. GROUP BY HIERARCHY
+            const seniorBuckets = {};
+
+            const allLeaders = [];
+            pSnap.forEach(d => allLeaders.push({ id: d.id, ...d.data() }));
+            mAdminSnap.forEach(d => allLeaders.push({ id: d.id, ...d.data() }));
+
+            allLeaders.forEach(leader => {
+                if (!leader.pastorId) {
+                    seniorBuckets[leader.id] = {
+                        name: leader.full_name,
+                        chapel: leader.chapel_name || "Branch",
+                        teamIds: [leader.id],
+                        juniorCount: 0
+                    };
+                }
+            });
+
+            allLeaders.forEach(leader => {
+                if (leader.pastorId) {
+                    const bossId = leader.pastorId;
+                    if (seniorBuckets[bossId]) {
+                        seniorBuckets[bossId].teamIds.push(leader.id);
+                        seniorBuckets[bossId].juniorCount++;
+                    } else {
+                        seniorBuckets[leader.id] = {
+                            name: leader.full_name,
+                            chapel: leader.chapel_name || "Unassigned",
+                            teamIds: [leader.id],
+                            juniorCount: 0
+                        };
+                    }
+                }
+            });
+
+            // 6. CALCULATE SCORES
+            globalAuditData = Object.keys(seniorBuckets).map(seniorId => {
+                const bucket = seniorBuckets[seniorId];
+                
+                const teamMembers = allMembers.filter(m => bucket.teamIds.includes(m.pastorId));
+
+                if (teamMembers.length === 0) {
+                    return { 
+                        name: bucket.name, 
+                        chapel: bucket.chapel, 
+                        members: 0, attendance: 0, conversion: 0, status: 'Low' 
+                    };
+                }
+
+                let sumRates = 0;
+                let scoredCount = 0;
+                let established = 0;
+                let eligibleConv = 0;
+                const todayTime = new Date();
+
+                teamMembers.forEach(m => {
+                    const regDate = m.registration_date ? new Date(m.registration_date) : new Date("2024-01-01");
+                    const regDateStr = regDate.toISOString().split('T')[0];
+
+                    const expectedServices = validServiceDates.filter(d => d >= regDateStr);
+                    const possibleCount = expectedServices.length;
+
+                    let attendedCount = 0;
+                    expectedServices.forEach(dateStr => {
+                        if (attendanceLog[`${m.id}_${dateStr}`]) attendedCount++;
+                    });
+
+                    if (possibleCount > 0) {
+                        const rate = (attendedCount / possibleCount) * 100;
+                        sumRates += rate;
+                        scoredCount++;
+                    }
+
+                    const daysIn = (todayTime - regDate) / (1000 * 60 * 60 * 24);
+                    if (daysIn > 30) {
+                        eligibleConv++;
+                        if (m.status === "Established Member") established++;
+                    }
+                });
+
+                const avgAtt = scoredCount > 0 ? Math.round(sumRates / scoredCount) : 0;
+                const convRate = eligibleConv > 0 ? Math.round((established / eligibleConv) * 100) : 0;
+                
+                return { 
+                    name: bucket.name, 
+                    chapel: bucket.juniorCount > 0 ? `${bucket.chapel} (+${bucket.juniorCount} Pastors)` : bucket.chapel, 
+                    members: teamMembers.length, 
+                    attendance: avgAtt, 
+                    conversion: convRate,
+                    status: avgAtt > 70 ? 'High' : (avgAtt > 40 ? 'Mid' : 'Low')
+                };
+            });
+
+            globalAuditData.sort((a,b) => b.attendance - a.attendance);
+
+            document.getElementById('syncText').innerHTML = `<i class="fa-solid fa-shield-check" style="color:#00ff88"></i> Global Audit • Dawn Prayers Excluded`;
+            renderTable(globalAuditData);
+            renderCharts(allMembers, globalAuditData);
+
+        } catch (err) {
+            console.error("Dashboard Error:", err);
+            document.getElementById('syncText').innerText = "Data Sync Error. Check console.";
+        }
+    }
+
+    function renderTable(data) {
+        const body = document.getElementById('auditBody');
+        if(!body) return;
+        body.innerHTML = data.map((l, i) => `
+            <tr>
+                <td style="opacity:0.4;">#${i+1}</td>
+                <td>
+                    <b style="color:white; font-size:1rem;">${l.name}</b><br>
+                    <small style="color:var(--text-dim); font-size:0.75rem;">${l.chapel}</small>
+                </td>
+                <td>${l.members}</td>
+                <td><span style="color:${l.attendance > 70 ? '#00ff88' : l.attendance > 40 ? '#f1c40f' : '#ff4b5c'}">${l.attendance}%</span></td>
+                <td>${l.conversion}%</td>
+                <td><span class="rank-badge ${l.status.toLowerCase()}">${l.status}</span></td>
+            </tr>
+        `).join('');
+    }
+
+    function renderCharts(members, data) {
+        if (pieChartInstance) pieChartInstance.destroy();
+        if (barChartInstance) barChartInstance.destroy();
+
+        const established = members.filter(m => m.status === "Established Member").length;
+        const newConverts = members.length - established;
+
+        const pieCtx = document.getElementById('maturityPie');
+        if(pieCtx) {
+            pieChartInstance = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: { 
+                    labels: ['Established', 'New Converts'], 
+                    datasets: [{ data: [established, newConverts], backgroundColor: ['#F2A20C', 'rgba(255,255,255,0.1)'], borderWidth: 0 }] 
+                },
+                options: { maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { color: '#aaa' } } } }
+            });
+        }
+
+        const barCtx = document.getElementById('attendanceBar');
+        if(barCtx) {
+            barChartInstance = new Chart(barCtx, {
+                type: 'bar',
+                data: { 
+                    labels: data.slice(0,5).map(x => x.name.split(' ')[0]), 
+                    datasets: [{ label: 'Attendance %', data: data.slice(0,5).map(x => x.attendance), backgroundColor: '#00f2fe', borderRadius: 6 }] 
+                },
+                options: { 
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' } }, x: { grid: { display: false }, ticks: { color: '#fff' } } }, 
+                    plugins: { legend: { display: false } } 
+                }
+            });
+        }
+    }
+
+    onAuthStateChanged(auth, user => {
+        if (user) loadGlobalDashboard();
+        else window.location.href = "index.html";
+    });
+</script>
+</body>
+</html>

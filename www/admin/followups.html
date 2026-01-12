@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>War Room | ShepherdNet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- APP THEME --- */
+        :root {
+            --gold-primary: #F2A20C;
+            --gold-dark: #BF9C34;
+            --bg: #0f172a;
+            --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --sidebar-width: 260px;
+            --sidebar-mini: 80px;
+            --danger: #ff4b5c;
+            --success: #00ff88;
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --glass: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s;
+        }
+
+        /* --- SIDEBAR --- */
+        nav {
+            width: var(--sidebar-width);
+            background: var(--glass);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+        }
+
+        body.sidebar-mini nav { width: var(--sidebar-mini); padding: 30px 15px; }
+        body.sidebar-mini .profile-info, 
+        body.sidebar-mini nav a span:last-child, 
+        body.sidebar-mini .nav-label { display: none; }
+        body.sidebar-mini .logo-text { display: none; }
+        body.sidebar-mini .menu-toggle i { transform: rotate(180deg); }
+
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; color: var(--gold-primary); font-weight: 700; font-size: 1.2rem; white-space: nowrap; overflow: hidden; }
+        .logo-icon { width: 35px; height: 35px; object-fit: contain; }
+
+        nav a {
+            display: flex; align-items: center; gap: 15px;
+            color: var(--text-dim); text-decoration: none;
+            padding: 12px 15px; border-radius: 12px;
+            margin-bottom: 5px; transition: 0.2s; font-size: 0.9rem; font-weight: 500;
+            white-space: nowrap; position: relative;
+        }
+        nav a:hover, nav a.active { background: rgba(242, 162, 12, 0.1); color: var(--gold-primary); }
+        nav a i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            flex: 1; padding: 40px;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+            max-width: 1400px;
+        }
+        body.sidebar-mini main { margin-left: var(--sidebar-mini); }
+
+        /* --- WAR ROOM HEADER --- */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
+        h1 { font-size: 1.5rem; font-weight: 600; margin: 0; color: var(--gold-primary); display:flex; align-items:center; gap:10px; }
+        
+        .event-badge {
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold-primary));
+            color: #fff; padding: 8px 16px; border-radius: 20px;
+            font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(242, 162, 12, 0.3);
+        }
+
+        /* --- KPI CARDS --- */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .kpi-card {
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 20px; border-radius: 16px; text-align: center;
+            transition: 0.2s; position: relative; overflow: hidden;
+        }
+        .kpi-val { font-size: 1.8rem; font-weight: 700; line-height: 1; margin-bottom: 5px; }
+        .kpi-lbl { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
+
+        /* --- CONTROLS --- */
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        
+        .search-bar {
+            flex: 2; background: var(--glass); border: 1px solid var(--border);
+            padding: 12px 20px; border-radius: 12px; color: var(--text-main);
+            outline: none; font-family: inherit; transition: 0.3s; min-width: 200px;
+        }
+        .search-bar:focus { border-color: var(--gold-primary); }
+
+        .filter-select {
+            flex: 1; background: var(--glass); border: 1px solid var(--border);
+            padding: 12px; border-radius: 12px; color: var(--text-main);
+            outline: none; cursor: pointer; min-width: 130px;
+        }
+        .filter-select option { background: var(--bg); }
+
+        /* --- RESPONSIVE TABLE --- */
+        .table-wrapper { background: var(--glass); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        
+        th { 
+            text-align: left; padding: 16px; 
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; 
+            color: var(--text-dim); border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02);
+        }
+        td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 0.9rem; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: rgba(255,255,255,0.03); }
+
+        /* --- MOBILE CARD VIEW TRANSFORM --- */
+        @media (max-width: 768px) {
+            /* Hide Sidebar by default on mobile */
+            nav { transform: translateX(-100%); width: 260px !important; }
+            body.mobile-open nav { transform: translateX(0); }
+            main { margin-left: 0 !important; padding: 90px 20px 40px 20px; }
+
+            /* Force Table to behave like Cards */
+            table, thead, tbody, th, td, tr { display: block; }
+            thead { display: none; } /* Hide Header */
+            
+            tr {
+                margin-bottom: 15px; border: 1px solid var(--border);
+                border-radius: 12px; background: rgba(255,255,255,0.03);
+                padding: 10px;
+            }
+            tr:hover { transform: translateY(-2px); border-color: var(--gold-primary); }
+            
+            td {
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+                display: flex; justify-content: space-between; align-items: center;
+                text-align: right; padding: 10px 5px;
+            }
+            td:last-child { border-bottom: none; }
+            
+            /* Add Label via Attribute */
+            td::before {
+                content: attr(data-label);
+                float: left; font-weight: 600; color: var(--text-dim);
+                font-size: 0.75rem; text-transform: uppercase;
+            }
+        }
+
+        /* Badges */
+        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        .st-present { background: rgba(0, 255, 136, 0.15); color: var(--success); }
+        .st-absent { background: rgba(255, 75, 92, 0.15); color: var(--danger); }
+        .st-expected { background: rgba(242, 162, 12, 0.15); color: var(--gold-primary); }
+
+        .role-badge { 
+            font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); 
+            margin-left: 8px; vertical-align: middle; opacity: 0.8;
+        }
+
+        /* Sidebar Toggle */
+        .menu-toggle {
+            position: absolute; right: -15px; top: 35px; width: 30px; height: 30px;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: var(--gold-primary); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1100;
+        }
+
+        .mobile-btn { display: none; position: fixed; top: 20px; right: 20px; z-index: 2000; background: var(--gold-primary); color: #fff; width: 45px; height: 45px; border-radius: 50%; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 900; opacity: 0; pointer-events: none; transition: 0.3s; }
+        body.mobile-open .overlay { opacity: 1; pointer-events: auto; }
+
+        @media (max-width: 768px) {
+            .menu-toggle { display: none; }
+            .mobile-btn { display: flex; }
+            body.sidebar-mini nav { width: 260px; } 
+            body.sidebar-mini .nav-label, body.sidebar-mini .logo-text, body.sidebar-mini nav a span:last-child { display: inline; }
+        }
+    </style>
+</head>
+<body class="sidebar-mini">
+
+    <div class="overlay" id="overlay"></div>
+    <div class="mobile-btn" id="mobileBtn"><i class="fa-solid fa-bars"></i></div>
+
+    <nav id="sidebar">
+        <div class="menu-toggle" id="sidebarToggle"><i class="fa-solid fa-chevron-left"></i></div>
+
+        <div class="logo-area">
+            <img src="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d" class="logo-icon">
+            <span class="logo-text">ShepherdNet</span>
+        </div>
+
+        <a href="index.html" class="active"><i class="fa-solid fa-arrow-left"></i> <span>Dashboard</span></a>
+        
+        <div style="flex-grow:1"></div>
+        
+        <a href="#" id="themeToggle"><i class="fa-solid fa-moon"></i> <span>Theme</span></a>
+        <a href="#" id="logoutBtn" style="color:var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> <span>Sign Out</span></a>
+    </nav>
+
+    <main>
+        <header>
+            <h1><i class="fa-solid fa-person-military-pointing"></i> War Room</h1>
+            <div id="eventDisplay" class="event-badge"><i class="fa-solid fa-spinner fa-spin"></i> Loading Event...</div>
+        </header>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <span class="kpi-val" id="valExpected">-</span>
+                <span class="kpi-lbl">Total Expected</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-val" id="valPresent" style="color:var(--success)">-</span>
+                <span class="kpi-lbl">Present</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-val" id="valAbsent" style="color:var(--danger)">-</span>
+                <span class="kpi-lbl">Absent / Pending</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-val" id="valPerf" style="color:var(--gold-primary)">-</span>
+                <span class="kpi-lbl">Performance</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="searchInput" class="search-bar" placeholder="Search by name, or location..." onkeyup="filterTable()">
+            <select id="statusFilter" class="filter-select" onchange="filterTable()">
+                <option value="all">All Statuses</option>
+                <option value="present">Present</option>
+                <option value="absent">Absent</option>
+                <option value="expected">Pending</option>
+            </select>
+            <select id="roleFilter" class="filter-select" onchange="filterTable()">
+                <option value="all">All Roles</option>
+                <option value="member">Members Only</option>
+                <option value="invitee">Invitees Only</option>
+            </select>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="25%">Name / Role</th>
+                        <th width="15%">Contact / Loc</th>
+                        <th width="20%">Shepherd</th>
+                        <th width="15%">Pastor</th>
+                        <th width="10%">Status</th>
+                        <th width="15%">Last Note</th>
+                    </tr>
+                </thead>
+                <tbody id="masterTableBody">
+                    <tr><td colspan="6" style="text-align:center; padding:40px; opacity:0.5;">Gathering Intelligence...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, limit, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCBv60eRCO0e4dFBMKGKnIATouxTuk1Bcc", authDomain: "fob-database-139d1.firebaseapp.com", projectId: "fob-database-139d1", storageBucket: "fob-database-139d1.firebasestorage.app", appId: "1:375165731354:web:b5fa57dcb2d71ee0d8c7a3" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app, "fobrealdbase");
+        const auth = getAuth(app);
+
+        // --- THEME & UI ---
+        const body = document.body;
+        const themeBtn = document.getElementById('themeToggle');
+        const themeIcon = themeBtn.querySelector('i');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeIcon.className = savedTheme === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+
+        themeBtn.onclick = (e) => {
+            e.preventDefault();
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            themeIcon.className = next === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        };
+
+        document.getElementById('sidebarToggle').onclick = () => body.classList.toggle('sidebar-mini');
+        const mobileBtn = document.getElementById('mobileBtn');
+        const overlay = document.getElementById('overlay');
+        mobileBtn.onclick = () => body.classList.add('mobile-open');
+        overlay.onclick = () => body.classList.remove('mobile-open');
+
+        // --- DATA LOGIC ---
+        let MASTER_LIST = []; 
+        let PHONEBOOK = {}; 
+        let TARGET_EVENT = null;
+
+        onAuthStateChanged(auth, (user) => { if (user) init(); else location.href = "../index.html"; });
+
+        async function init() {
+            try {
+                await buildPhonebook();
+
+                // 1. Find the Relevant Event
+                const now = new Date();
+                const q = query(collection(db, "events"), where("date", ">=", now), orderBy("date", "asc"), limit(10));
+                const evSnap = await getDocs(q);
+                
+                if(!evSnap.empty) {
+                    const valid = evSnap.docs.find(d => !((d.data().title||d.data().name||"").toLowerCase().includes("dawn")));
+                    if (valid) {
+                        const d = valid.data();
+                        TARGET_EVENT = { id: valid.id, title: d.title || d.name, date: d.date.toDate() };
+                    }
+                }
+
+                if(!TARGET_EVENT) {
+                    const pastQ = query(collection(db, "events"), orderBy("date", "desc"), limit(1));
+                    const pastSnap = await getDocs(pastQ);
+                    if(!pastSnap.empty) {
+                        const d = pastSnap.docs[0].data();
+                        TARGET_EVENT = { id: pastSnap.docs[0].id, title: d.title || d.name, date: d.date.toDate() };
+                    }
+                }
+
+                if(TARGET_EVENT) {
+                    document.getElementById('eventDisplay').innerText = `🎯 ${TARGET_EVENT.title} (${TARGET_EVENT.date.toLocaleDateString()})`;
+                    loadMasterList();
+                } else {
+                    document.getElementById('eventDisplay').innerText = "No Scheduled Events";
+                    document.getElementById('masterTableBody').innerHTML = "<tr><td colspan='6' style='text-align:center'>No events found in database.</td></tr>";
+                }
+
+            } catch(e) { console.error(e); }
+        }
+
+        async function buildPhonebook() {
+            const collections = ["shepherds", "pastors", "master_admin"];
+            for(const col of collections) {
+                const snap = await getDocs(collection(db, col));
+                snap.forEach(d => {
+                    const data = d.data();
+                    PHONEBOOK[d.id] = data.full_name || `${data.first_name||''} ${data.last_name||''}`.trim() || "-";
+                });
+            }
+        }
+
+        async function loadMasterList() {
+            MASTER_LIST = [];
+
+            // A. Process MEMBERS
+            const memSnap = await getDocs(collection(db, "members"));
+            const attSnap = await getDocs(collection(db, "attendance")); 
+            
+            memSnap.forEach(doc => {
+                const m = doc.data();
+                const record = attSnap.docs.find(a => {
+                    const ad = a.data();
+                    return ad.memberId === doc.id && (ad.eventId === TARGET_EVENT.id || (ad.timestamp && ad.timestamp.toDate().toDateString() === TARGET_EVENT.date.toDateString()));
+                });
+
+                let status = 'expected';
+                if (record) {
+                    const s = record.data().status.toLowerCase();
+                    if (s.includes('present')) status = 'present';
+                    else if (s.includes('absent')) status = 'absent';
+                }
+
+                const fullName = m.full_name || `${m.first_name || ''} ${m.last_name || ''}`.trim() || "Unknown Member";
+
+                MASTER_LIST.push({
+                    name: fullName,
+                    contact: m.phone || "-",
+                    hostel: m.hostel || m.residence || "-",
+                    role: 'member',
+                    shepherdId: m.shepherdId,
+                    pastorId: m.pastorId,
+                    status: status,
+                    note: record ? (record.data().notes || "") : ""
+                });
+            });
+
+            // B. Process INVITEES
+            const invSnap = await getDocs(collection(db, "invitees"));
+            invSnap.forEach(doc => {
+                const i = doc.data();
+                if(i.status === 'graduated') return; 
+
+                let status = 'expected';
+                let note = "";
+                
+                if (i.history && Array.isArray(i.history)) {
+                    const match = i.history.find(h => h.eventId === TARGET_EVENT.id);
+                    if (match) {
+                        if (match.status === 'honoured') status = 'present';
+                        else if (match.status === 'declined') status = 'absent';
+                        note = match.reason || "";
+                    }
+                }
+
+                MASTER_LIST.push({
+                    name: i.fullName,
+                    contact: i.phone || "-",
+                    hostel: i.hostel || "-",
+                    role: 'invitee',
+                    shepherdId: i.shepherdId,
+                    pastorId: i.pastorId,
+                    status: status,
+                    note: note
+                });
+            });
+
+            renderTable(MASTER_LIST);
+            updateKPIs(MASTER_LIST);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('masterTableBody');
+            if(data.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; padding:30px;'>No data found.</td></tr>";
+                return;
+            }
+
+            tbody.innerHTML = data.map(row => {
+                const shepName = PHONEBOOK[row.shepherdId] || "-";
+                const pastName = PHONEBOOK[row.pastorId] || "-";
+                
+                let pillClass = "st-expected";
+                if (row.status === 'present') pillClass = "st-present";
+                if (row.status === 'absent') pillClass = "st-absent";
+
+                // Add data-label attributes for mobile cards
+                return `
+                <tr>
+                    <td data-label="Name / Role">
+                        <b>${row.name}</b>
+                        <span class="role-badge" style="color:${row.role==='member'?'var(--gold-primary)':'var(--text-dim)'}">${row.role.toUpperCase()}</span>
+                    </td>
+                    <td data-label="Contact">
+                        ${row.contact}<br><span style="opacity:0.5; font-size:0.75rem;">${row.hostel}</span>
+                    </td>
+                    <td data-label="Shepherd">${shepName}</td>
+                    <td data-label="Pastor">${pastName}</td>
+                    <td data-label="Status"><span class="status-pill ${pillClass}">${row.status}</span></td>
+                    <td data-label="Last Note" style="font-size:0.75rem; opacity:0.6;">${row.note || "-"}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function updateKPIs(data) {
+            const total = data.length;
+            const present = data.filter(d => d.status === 'present').length;
+            const absent = data.filter(d => d.status === 'absent').length;
+            const expected = total - present - absent; 
+
+            document.getElementById('valExpected').innerText = total;
+            document.getElementById('valPresent').innerText = present;
+            document.getElementById('valAbsent').innerText = `${absent} / ${expected}`;
+            
+            const perf = total > 0 ? Math.round((present / total) * 100) : 0;
+            document.getElementById('valPerf').innerText = perf + "%";
+        }
+
+        window.filterTable = () => {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const statFilter = document.getElementById('statusFilter').value;
+            const roleFilter = document.getElementById('roleFilter').value;
+
+            const filtered = MASTER_LIST.filter(item => {
+                const textMatch = 
+                    item.name.toLowerCase().includes(search) || 
+                    (PHONEBOOK[item.shepherdId]||"").toLowerCase().includes(search) ||
+                    item.hostel.toLowerCase().includes(search);
+                
+                if (!textMatch) return false;
+                if (statFilter !== 'all' && item.status !== statFilter) return false;
+                if (roleFilter !== 'all' && item.role !== roleFilter) return false;
+
+                return true;
+            });
+
+            renderTable(filtered);
+        };
+
+        document.getElementById('logoutBtn').onclick = (e) => {
+            e.preventDefault();
+            signOut(auth).then(() => window.location.href="/index.html");
+        };
+    </script>
+</body>
+</html>

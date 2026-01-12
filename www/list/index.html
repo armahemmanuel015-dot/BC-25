@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Registry | ShepherdNet</title>
+    
+    <link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- APP THEME --- */
+        :root {
+            --gold-primary: #F2A20C;
+            --gold-dark: #BF9C34;
+            --bg: #0f172a;
+            --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --sidebar-width: 260px;
+            --sidebar-mini: 80px;
+            --danger: #ff4b5c;
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --glass: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s;
+        }
+
+        /* --- SIDEBAR --- */
+        nav {
+            width: var(--sidebar-width);
+            background: var(--glass);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+        }
+
+        body.sidebar-mini nav { width: var(--sidebar-mini); padding: 30px 15px; }
+        body.sidebar-mini .profile-info, 
+        body.sidebar-mini nav a span:last-child, 
+        body.sidebar-mini .nav-label { display: none; }
+        body.sidebar-mini .logo-text { display: none; }
+        body.sidebar-mini .menu-toggle i { transform: rotate(180deg); }
+
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; color: var(--gold-primary); font-weight: 700; font-size: 1.2rem; white-space: nowrap; overflow: hidden; }
+        .logo-icon { width: 35px; height: 35px; object-fit: contain; }
+
+        .nav-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 10px 15px; font-weight: 600; }
+
+        nav a {
+            display: flex; align-items: center; gap: 15px;
+            color: var(--text-dim); text-decoration: none;
+            padding: 12px 15px; border-radius: 12px;
+            margin-bottom: 5px; transition: 0.2s; font-size: 0.9rem; font-weight: 500;
+            white-space: nowrap; position: relative;
+        }
+        nav a:hover, nav a.active { background: rgba(242, 162, 12, 0.1); color: var(--gold-primary); }
+        nav a i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            flex: 1; padding: 40px;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+            max-width: 1200px;
+        }
+        body.sidebar-mini main { margin-left: var(--sidebar-mini); }
+
+        /* --- REGISTRY HEADER --- */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
+        h1 { font-size: 1.5rem; font-weight: 600; margin: 0; color: var(--gold-primary); }
+        
+        .search-bar {
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 12px 20px; border-radius: 30px; width: 100%; max-width: 400px;
+            color: var(--text-main); outline: none; font-family: inherit;
+            transition: 0.3s;
+        }
+        .search-bar:focus { border-color: var(--gold-primary); box-shadow: 0 0 15px rgba(242, 162, 12, 0.1); }
+
+        /* --- MEMBER LIST & GROUPING --- */
+        .list-container { display: flex; flex-direction: column; gap: 10px; }
+        
+        .group-header {
+            margin: 30px 0 10px 0;
+            font-size: 0.85rem; font-weight: 700; 
+            text-transform: uppercase; letter-spacing: 1px;
+            color: var(--gold-primary); 
+            display: flex; align-items: center; gap: 10px;
+            border-bottom: 2px solid rgba(242, 162, 12, 0.2);
+            padding-bottom: 8px;
+        }
+        .group-header i { font-size: 1rem; opacity: 0.8; }
+
+        .member-card {
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 15px 20px; border-radius: 16px;
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; transition: 0.2s;
+        }
+        .member-card:hover { transform: translateX(5px); border-color: var(--gold-primary); background: rgba(242, 162, 12, 0.05); }
+        
+        .m-info h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+        .m-meta { font-size: 0.75rem; color: var(--text-dim); display: flex; align-items: center; gap: 10px; }
+        .status-badge { 
+            font-size: 0.65rem; padding: 2px 8px; border-radius: 6px; 
+            background: rgba(242, 162, 12, 0.15); color: var(--gold-primary); font-weight: 600; text-transform: uppercase; 
+        }
+        
+        /* Floating Action Button */
+        .fab {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 60px; height: 60px; border-radius: 50%;
+            background: var(--gold-primary); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; box-shadow: 0 5px 20px rgba(242, 162, 12, 0.4);
+            cursor: pointer; z-index: 100; transition: 0.3s; text-decoration: none;
+        }
+        .fab:hover { transform: scale(1.1); }
+
+        /* Mobile Controls */
+        .menu-toggle {
+            position: absolute; right: -15px; top: 35px; width: 30px; height: 30px;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: var(--gold-primary); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1100;
+        }
+
+        .mobile-btn { display: none; position: fixed; top: 20px; right: 20px; z-index: 2000; background: var(--gold-primary); color: #fff; width: 45px; height: 45px; border-radius: 50%; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 900; opacity: 0; pointer-events: none; transition: 0.3s; }
+        body.mobile-open .overlay { opacity: 1; pointer-events: auto; }
+
+        @media (max-width: 768px) {
+            nav { transform: translateX(-100%); width: 260px !important; }
+            body.mobile-open nav { transform: translateX(0); }
+            main { margin-left: 0 !important; padding: 100px 20px 80px 20px; }
+            .menu-toggle { display: none; }
+            .mobile-btn { display: flex; }
+            body.sidebar-mini nav { width: 260px; } 
+            body.sidebar-mini .nav-label, body.sidebar-mini .logo-text, body.sidebar-mini nav a span:last-child { display: inline; }
+        }
+    </style>
+</head>
+<body class="sidebar-mini">
+
+    <div class="overlay" id="overlay"></div>
+    <div class="mobile-btn" id="mobileBtn"><i class="fa-solid fa-bars"></i></div>
+
+    <nav id="sidebar">
+        <div class="menu-toggle" id="sidebarToggle"><i class="fa-solid fa-chevron-left"></i></div>
+
+        <div class="logo-area">
+            <img src="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d" class="logo-icon">
+            <span class="logo-text">ShepherdNet</span>
+        </div>
+
+        <a href="../list/settings.html" style="background:rgba(255,255,255,0.03); margin-bottom:20px; text-decoration:none;">
+            <i class="fa-solid fa-user-circle" style="color:var(--gold-primary)"></i>
+            <span id="nav-name" style="font-weight:600; color:var(--text-main);">Loading...</span>
+        </a>
+
+        <a href="#" id="dashLink" class="active">
+            <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
+        </a>
+        
+        <div class="nav-label">Ministry</div>
+        <a href="#" class="active"><i class="fa-solid fa-users"></i> <span>Registry</span></a>
+        <a href="../registry/index.html"><i class="fa-solid fa-clipboard-check"></i> <span>Attendance</span></a>
+        <a href="../pastor/invitees.html"><i class="fa-solid fa-user-plus"></i> <span>Targets</span></a>
+        
+        <div class="nav-label">Settings</div>
+        <a href="settings.html"><i class="fa-solid fa-gear"></i> <span>Profile</span></a>
+
+        <div style="flex-grow:1"></div>
+        
+        <a href="#" id="themeToggle"><i class="fa-solid fa-moon"></i> <span>Theme</span></a>
+        <a href="#" id="logoutBtn" style="color:var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> <span>Sign Out</span></a>
+    </nav>
+
+    <main>
+        <header>
+            <h1 id="headerTitle">Registry</h1>
+            <input type="text" id="searchBox" class="search-bar" placeholder="Search members...">
+        </header>
+
+        <div id="list" class="list-container">
+            <p style="text-align:center; opacity:0.5; padding:40px;">Loading Flock...</p>
+        </div>
+    </main>
+
+    <a href="../dashboard/add-member.html" class="fab"><i class="fa-solid fa-plus"></i></a>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+        import { initializeFirestore, doc, getDoc, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCBv60eRCO0e4dFBMKGKnIATouxTuk1Bcc", authDomain: "fob-database-139d1.firebaseapp.com", projectId: "fob-database-139d1", storageBucket: "fob-database-139d1.firebasestorage.app", appId: "1:375165731354:web:b5fa57dcb2d71ee0d8c7a3" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = initializeFirestore(app, { experimentalForceLongPolling: true }, "fobrealdbase");
+
+        // --- THEME & UI LOGIC ---
+        const body = document.body;
+        const themeBtn = document.getElementById('themeToggle');
+        const themeIcon = themeBtn.querySelector('i');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeIcon.className = savedTheme === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+
+        themeBtn.onclick = (e) => {
+            e.preventDefault();
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            themeIcon.className = next === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        };
+
+        document.getElementById('sidebarToggle').onclick = () => body.classList.toggle('sidebar-mini');
+        const mobileBtn = document.getElementById('mobileBtn');
+        const overlay = document.getElementById('overlay');
+        mobileBtn.onclick = () => body.classList.add('mobile-open');
+        overlay.onclick = () => body.classList.remove('mobile-open');
+
+        // --- DATA LOGIC ---
+        let allMembers = [];
+        let currentRole = "";
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = "../index.html"; return; }
+            
+            // 1. Identify User Role & Update UI
+            const collections = ["master_admin", "pastors", "shepherds"];
+            let userName = "User";
+
+            for (const coll of collections) {
+                const snap = await getDoc(doc(db, coll, user.uid));
+                if (snap.exists()) {
+                    currentRole = coll;
+                    const data = snap.data();
+                    
+                    let prefix = "";
+                    if(currentRole === 'master_admin') prefix = ""; 
+                    if(currentRole === 'pastors') prefix = "Esteemed Pastor ";
+                    if(currentRole === 'shepherds') prefix = "Esteemed Shepherd ";
+                    
+                    userName = data.full_name.split(' ')[0] || "User";
+                    document.getElementById('nav-name').innerText = `${userName}`;
+                    document.getElementById('dashLink').href = `../${currentRole === 'master_admin' ? 'admin' : currentRole === 'pastors' ? 'pastor' : 'shepherd'}/index.html`;
+                    break;
+                }
+            }
+
+            // 2. Load Content based on Role
+            if (currentRole === 'master_admin') {
+                document.getElementById('headerTitle').innerText = "The Treasure City Registry";
+                await loadAdminView();
+            } else if (currentRole === 'pastors') {
+                document.getElementById('headerTitle').innerText = "Chapel Flock";
+                await loadPastorView(user.uid);
+            } else {
+                document.getElementById('headerTitle').innerText = "My Assigned Souls";
+                await loadShepherdView(user.uid);
+            }
+        });
+
+        // --- ADMIN VIEW (Grouped by Pastor) ---
+        async function loadAdminView() {
+            // A. Fetch All Pastors to map IDs to Names
+            const pastorSnaps = await getDocs(collection(db, "pastors"));
+            const pastorMap = {};
+            pastorSnaps.forEach(doc => { pastorMap[doc.id] = doc.data().full_name; });
+
+            // B. Fetch Members sorted by Pastor ID for grouping
+            const snaps = await getDocs(query(collection(db, "members"), orderBy("pastorId")));
+            
+            processMembers(snaps.docs, "admin", {}, pastorMap);
+        }
+
+        // --- PASTOR VIEW (Grouped by Shepherd) ---
+        async function loadPastorView(pid) {
+            // A. Fetch Shepherds under this Pastor
+            const shepSnaps = await getDocs(query(collection(db, "shepherds"), where("assigned_pastor_id", "==", pid)));
+            const shepMap = {};
+            shepSnaps.forEach(s => shepMap[s.id] = s.data().full_name);
+
+            // B. Fetch Members sorted by Shepherd ID
+            const snaps = await getDocs(query(collection(db, "members"), where("pastorId", "==", pid), orderBy("shepherdId")));
+            
+            processMembers(snaps.docs, "pastor", shepMap);
+        }
+
+        async function loadShepherdView(sid) {
+            const snaps = await getDocs(query(collection(db, "members"), where("shepherdId", "==", sid)));
+            processMembers(snaps.docs, "shepherd");
+        }
+
+        function processMembers(docs, mode, shepMap = {}, pastorMap = {}) {
+            allMembers = docs.map(doc => {
+                const data = doc.data();
+                
+                // Determine Header Group & Subtext
+                let groupKey = "";
+                let groupName = "";
+                let subtext = "";
+
+                if (mode === "admin") {
+                    const pId = data.pastorId;
+                    const pName = pastorMap[pId] || "Direct Entry (Admin)";
+                    groupKey = pId;
+                    groupName = `Pastor ${pName}`;
+                    subtext = "Registry Entry";
+                }
+                else if (mode === "pastor") {
+                    const sId = data.shepherdId;
+                    const sName = shepMap[sId] || "Direct Entry (You)";
+                    groupKey = sId;
+                    groupName = `Shepherd: ${sName}`;
+                    subtext = "Chapel Member";
+                }
+                else {
+                    groupKey = "mine";
+                    groupName = "My Flock";
+                    subtext = "Assigned to You";
+                }
+
+                return {
+                    id: doc.id,
+                    name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
+                    status: data.status || 'Active',
+                    subtext: subtext,
+                    groupKey: groupKey || "unknown", // For sorting/grouping
+                    groupName: groupName
+                };
+            });
+            renderList(allMembers);
+        }
+
+        function renderList(list) {
+            const container = document.getElementById('list');
+            if (list.length === 0) { container.innerHTML = `<p style="text-align:center; opacity:0.5; padding:40px;">No members found.</p>`; return; }
+            
+            let lastGroup = null;
+            let html = "";
+
+            list.forEach(m => {
+                // Insert Header if Group Changes
+                if (m.groupKey !== lastGroup && currentRole !== 'shepherds') {
+                    html += `<div class="group-header"><i class="fa-solid fa-layer-group"></i> ${m.groupName}</div>`;
+                    lastGroup = m.groupKey;
+                }
+
+                html += `
+                <div class="member-card" onclick="window.location.href='profile.html?id=${m.id}'">
+                    <div class="m-info">
+                        <h3>${m.name}</h3>
+                        <div class="m-meta">
+                            <span class="status-badge">${m.status}</span>
+                            <span>• ${m.subtext}</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="opacity:0.3; font-size:0.8rem;"></i>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Search Logic
+        document.getElementById('searchBox').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allMembers.filter(m => m.name.toLowerCase().includes(term));
+            renderList(filtered);
+        });
+
+        document.getElementById('logoutBtn').onclick = (e) => {
+            e.preventDefault();
+            signOut(auth).then(() => window.location.href="../index.html");
+        };
+    </script>
+</body>
+</html>

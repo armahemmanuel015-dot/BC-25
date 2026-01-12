@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Attendance Registry | ShepherdNet</title>
+    
+    <link rel="icon" type="image/png" href="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- APP THEME --- */
+        :root {
+            --gold-primary: #F2A20C;
+            --gold-dark: #BF9C34;
+            --bg: #0f172a;
+            --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: rgba(255, 255, 255, 0.5);
+            --sidebar-width: 260px;
+            --sidebar-mini: 80px;
+            --danger: #ff4b5c;
+            --success: #00ff88;
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --glass: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.3s;
+        }
+
+        /* --- SIDEBAR --- */
+        nav {
+            width: var(--sidebar-width);
+            background: var(--glass);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+        }
+
+        body.sidebar-mini nav { width: var(--sidebar-mini); padding: 30px 15px; }
+        body.sidebar-mini .profile-info, 
+        body.sidebar-mini nav a span:last-child, 
+        body.sidebar-mini .nav-label { display: none; }
+        body.sidebar-mini .logo-text { display: none; }
+        body.sidebar-mini .menu-toggle i { transform: rotate(180deg); }
+
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; color: var(--gold-primary); font-weight: 700; font-size: 1.2rem; white-space: nowrap; overflow: hidden; }
+        .logo-icon { width: 35px; height: 35px; object-fit: contain; }
+
+        nav a {
+            display: flex; align-items: center; gap: 15px;
+            color: var(--text-dim); text-decoration: none;
+            padding: 12px 15px; border-radius: 12px;
+            margin-bottom: 5px; transition: 0.2s; font-size: 0.9rem; font-weight: 500;
+            white-space: nowrap; position: relative;
+        }
+        nav a:hover, nav a.active { background: rgba(242, 162, 12, 0.1); color: var(--gold-primary); }
+        nav a i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            flex: 1; padding: 40px;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s;
+            max-width: 1200px;
+        }
+        body.sidebar-mini main { margin-left: var(--sidebar-mini); }
+
+        /* --- HEADER & SEARCH --- */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
+        h1 { font-size: 1.5rem; font-weight: 600; margin: 0; color: var(--gold-primary); }
+        
+        .search-bar {
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 12px 20px; border-radius: 30px; width: 100%; max-width: 400px;
+            color: var(--text-main); outline: none; font-family: inherit;
+            transition: 0.3s;
+        }
+        .search-bar:focus { border-color: var(--gold-primary); box-shadow: 0 0 15px rgba(242, 162, 12, 0.1); }
+
+        /* --- GROUP HEADERS --- */
+        .group-header {
+            margin: 30px 0 15px 0; padding-bottom: 5px;
+            border-bottom: 1px solid rgba(242, 162, 12, 0.3);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .group-title { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--gold-primary); font-weight: 700; }
+        .group-badge { font-size: 0.7rem; background: rgba(242, 162, 12, 0.1); padding: 2px 8px; border-radius: 10px; color: var(--text-main); }
+
+        /* --- MEMBER CARD --- */
+        .member-card {
+            background: var(--glass); border: 1px solid var(--border);
+            padding: 15px 20px; border-radius: 16px; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: 0.2s; position: relative; overflow: hidden;
+        }
+        .member-card:hover { transform: translateX(5px); border-color: var(--gold-primary); }
+        
+        /* Attendance Dots */
+        .streak-container { display: flex; gap: 8px; margin-top: 8px; }
+        .dot {
+            width: 14px; height: 14px; border-radius: 50%;
+            background: rgba(255,255,255,0.1); border: 1px solid var(--border);
+            cursor: pointer; transition: 0.2s; position: relative;
+        }
+        
+        .dot.present { background: var(--success); border-color: var(--success); box-shadow: 0 0 8px rgba(0,255,136,0.4); }
+        .dot.absent { background: var(--danger); border-color: var(--danger); }
+        
+        .dot::after { /* Tooltip Date */
+            content: attr(data-date);
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: #000; color: #fff; padding: 4px 8px; border-radius: 4px;
+            font-size: 0.6rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: 0.2s;
+        }
+        .dot:hover::after { opacity: 1; bottom: 25px; }
+
+        /* Sidebar Toggle */
+        .menu-toggle {
+            position: absolute; right: -15px; top: 35px; width: 30px; height: 30px;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            color: var(--gold-primary); box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1100;
+        }
+
+        .mobile-btn { display: none; position: fixed; top: 20px; right: 20px; z-index: 2000; background: var(--gold-primary); color: #fff; width: 45px; height: 45px; border-radius: 50%; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 900; opacity: 0; pointer-events: none; transition: 0.3s; }
+        body.mobile-open .overlay { opacity: 1; pointer-events: auto; }
+
+        @media (max-width: 768px) {
+            nav { transform: translateX(-100%); width: 260px !important; }
+            body.mobile-open nav { transform: translateX(0); }
+            main { margin-left: 0 !important; padding: 100px 20px 80px 20px; }
+            .menu-toggle { display: none; }
+            .mobile-btn { display: flex; }
+            body.sidebar-mini nav { width: 260px; } 
+            body.sidebar-mini .nav-label, body.sidebar-mini .logo-text, body.sidebar-mini nav a span:last-child { display: inline; }
+        }
+    </style>
+</head>
+<body class="sidebar-mini">
+
+    <div class="overlay" id="overlay"></div>
+    <div class="mobile-btn" id="mobileBtn"><i class="fa-solid fa-bars"></i></div>
+
+    <nav id="sidebar">
+        <div class="menu-toggle" id="sidebarToggle"><i class="fa-solid fa-chevron-left"></i></div>
+
+        <div class="logo-area">
+            <img src="https://firebasestorage.googleapis.com/v0/b/fob-database-139d1.firebasestorage.app/o/Jewels%20background%20removed.png?alt=media&token=24f78e7c-d2db-4cb4-8ec1-6695cbe6dc0d" class="logo-icon">
+            <span class="logo-text">ShepherdNet</span>
+        </div>
+
+        <a href="#" id="dashLink">
+            <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
+        </a>
+        
+        <div class="nav-label">Ministry</div>
+        <a href="#" class="active"><i class="fa-solid fa-clipboard-check"></i> <span>Attendance</span></a>
+        <a href="../list/index.html"><i class="fa-solid fa-users"></i> <span>Registry</span></a>
+        <a href="../pastor/invitees.html"><i class="fa-solid fa-user-plus"></i> <span>Targets</span></a>
+        
+        <div class="nav-label">Settings</div>
+        <a href="../list/settings.html"><i class="fa-solid fa-gear"></i> <span>Profile</span></a>
+
+        <div style="flex-grow:1"></div>
+        
+        <a href="#" id="themeToggle"><i class="fa-solid fa-moon"></i> <span>Theme</span></a>
+        <a href="#" id="logoutBtn" style="color:var(--danger);"><i class="fa-solid fa-right-from-bracket"></i> <span>Sign Out</span></a>
+    </nav>
+
+    <main>
+        <header>
+            <h1>Attendance Registry</h1>
+            <input type="text" id="searchInput" class="search-bar" placeholder="Search members...">
+        </header>
+
+        <div id="loading" style="text-align:center; opacity:0.6; padding:40px;">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> Loading Flock Data...
+        </div>
+
+        <div id="memberList"></div>
+    </main>
+
+    <a href="../dashboard/add-member.html" class="fab" style="position:fixed; bottom:30px; right:30px; width:60px; height:60px; background:var(--gold-primary); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.5rem; box-shadow:0 5px 20px rgba(0,0,0,0.3);"><i class="fa-solid fa-plus"></i></a>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, getDoc, doc, orderBy, limit, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyCBv60eRCO0e4dFBMKGKnIATouxTuk1Bcc", authDomain: "fob-database-139d1.firebaseapp.com", projectId: "fob-database-139d1", storageBucket: "fob-database-139d1.firebasestorage.app", appId: "1:375165731354:web:b5fa57dcb2d71ee0d8c7a3" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app, "fobrealdbase");
+
+        // --- UI LOGIC ---
+        const body = document.body;
+        const themeBtn = document.getElementById('themeToggle');
+        const themeIcon = themeBtn.querySelector('i');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeIcon.className = savedTheme === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+
+        themeBtn.onclick = (e) => {
+            e.preventDefault();
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            themeIcon.className = next === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        };
+
+        document.getElementById('sidebarToggle').onclick = () => body.classList.toggle('sidebar-mini');
+        const mobileBtn = document.getElementById('mobileBtn');
+        const overlay = document.getElementById('overlay');
+        mobileBtn.onclick = () => body.classList.add('mobile-open');
+        overlay.onclick = () => body.classList.remove('mobile-open');
+
+        // --- DATA LOGIC ---
+        let allMembers = [];
+        let latestEvents = [];
+        let leaderNames = {}; // Cache for Pastor/Shepherd names
+        let userRole = "";
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = "../index.html"; return; }
+            
+            // 1. Determine Role & Links
+            const aSnap = await getDoc(doc(db, "master_admin", user.uid));
+            const pSnap = await getDoc(doc(db, "pastors", user.uid));
+            const sSnap = await getDoc(doc(db, "shepherds", user.uid));
+
+            if(aSnap.exists()) { 
+                userRole = 'admin'; 
+                document.getElementById('dashLink').href = "../admin/index.html"; 
+            }
+            else if(pSnap.exists()) { 
+                userRole = 'pastor'; 
+                document.getElementById('dashLink').href = "../pastor/index.html"; 
+            }
+            else if(sSnap.exists()) { 
+                userRole = 'shepherd'; 
+                document.getElementById('dashLink').href = "../shepherd/index.html"; 
+            }
+
+            await fetchLatestEvents();
+            await fetchMembers(user.uid);
+        });
+
+        async function fetchLatestEvents() {
+            // Get last 5 events
+            const todayStr = new Date().toISOString().split('T')[0];
+            const q = query(collection(db, "events"), where("date", "<=", new Date()), orderBy("date", "desc"), limit(5));
+            const snap = await getDocs(q);
+            // Reverse so oldest is left, newest is right (standard streak view)
+            latestEvents = snap.docs.map(d => ({ 
+                id: d.id, 
+                dateStr: d.data().dateString || d.data().date.toDate().toLocaleDateString('en-GB')
+            })).reverse();
+        }
+
+        async function fetchMembers(uid) {
+            let q;
+            if (userRole === "admin") {
+                // Fetch All
+                q = collection(db, "members");
+                // Fetch All Pastors for naming
+                const pSnaps = await getDocs(collection(db, "pastors"));
+                pSnaps.forEach(doc => leaderNames[doc.id] = doc.data().full_name);
+            } 
+            else if (userRole === "pastor") {
+                // Fetch Flock
+                q = query(collection(db, "members"), where("pastorId", "==", uid));
+                // Fetch Shepherds for naming
+                const sSnaps = await getDocs(query(collection(db, "shepherds"), where("assigned_pastor_id", "==", uid)));
+                sSnaps.forEach(doc => leaderNames[doc.id] = doc.data().full_name);
+            } 
+            else {
+                // Fetch Assigned
+                q = query(collection(db, "members"), where("shepherdId", "==", uid));
+            }
+
+            const snap = await getDocs(q);
+            allMembers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            
+            // Initial Render
+            document.getElementById('loading').style.display = 'none';
+            renderList(allMembers);
+        }
+
+        async function getAttendanceDots(memberId) {
+            let dotsHtml = "";
+            for (const ev of latestEvents) {
+                // Check doc ID: memberId_eventId
+                const attRef = doc(db, "attendance", `${memberId}_${ev.id}`);
+                // Since this is async inside a loop, for rendering we might want to pre-fetch. 
+                // BUT for Simplicity/Reliability in this structure, we will do individual checks 
+                // OR better: use a client-side check if we fetched all attendance. 
+                // To keep it fast, we will load dots async after render.
+                
+                dotsHtml += `<div id="dot-${memberId}-${ev.id}" class="dot" data-date="${ev.dateStr}" onclick="toggleAttendance('${memberId}', '${ev.id}')"></div>`;
+                
+                // Trigger async check
+                checkStatus(memberId, ev.id);
+            }
+            return dotsHtml;
+        }
+
+        async function checkStatus(mId, eId) {
+            const snap = await getDoc(doc(db, "attendance", `${mId}_${eId}`));
+            const dot = document.getElementById(`dot-${mId}-${eId}`);
+            if(dot && snap.exists()) {
+                const s = snap.data().status;
+                if(s === 'present') dot.classList.add('present');
+                if(s === 'absent') dot.classList.add('absent');
+            }
+        }
+
+        async function renderList(members) {
+            const container = document.getElementById('memberList');
+            container.innerHTML = "";
+
+            if (members.length === 0) {
+                container.innerHTML = "<p style='text-align:center; opacity:0.5;'>No members found.</p>";
+                return;
+            }
+
+            // Grouping
+            const groups = {};
+            members.forEach(m => {
+                let key = "default";
+                if(userRole === "admin") key = m.pastorId || "Unassigned";
+                else if(userRole === "pastor") key = m.shepherdId || "Direct";
+                
+                if(!groups[key]) groups[key] = [];
+                groups[key].push(m);
+            });
+
+            for (const [key, group] of Object.entries(groups)) {
+                if(userRole !== 'shepherd') {
+                    const groupName = leaderNames[key] || (key === 'Direct' ? 'Direct Oversight' : 'Unassigned');
+                    const header = document.createElement('div');
+                    header.className = 'group-header';
+                    header.innerHTML = `<span class="group-title">${userRole==='admin'?'Pastor':'Shepherd'}: ${groupName}</span> <span class="group-badge">${group.length}</span>`;
+                    container.appendChild(header);
+                }
+
+                for (const m of group) {
+                    const dotsHtml = await getAttendanceDots(m.id);
+                    const card = document.createElement('div');
+                    card.className = 'member-card';
+                    card.innerHTML = `
+                        <div>
+                            <div style="font-weight:600; font-size:0.95rem;">${m.first_name} ${m.last_name}</div>
+                            <div style="font-size:0.7rem; color:var(--gold-primary); opacity:0.8;">${m.status || 'Member'}</div>
+                            <div class="streak-container">${dotsHtml}</div>
+                        </div>
+                        <a href="../list/profile.html?id=${m.id}" style="color:var(--text-dim);"><i class="fa-solid fa-chevron-right"></i></a>
+                    `;
+                    container.appendChild(card);
+                }
+            }
+        }
+
+        // --- GLOBAL FUNCTION FOR ONCLICK ---
+        window.toggleAttendance = async (mId, eId) => {
+            const dot = document.getElementById(`dot-${mId}-${eId}`);
+            const ref = doc(db, "attendance", `${mId}_${eId}`);
+            
+            // Cycle: Null -> Present -> Absent -> Null
+            if (!dot.classList.contains('present') && !dot.classList.contains('absent')) {
+                // Set Present
+                await setDoc(ref, { 
+                    status: 'present', memberId: mId, eventId: eId, 
+                    timestamp: new Date(),
+                    pastorId: auth.currentUser.uid // Capture who marked it (or lookup correct parent)
+                }, {merge:true});
+                dot.classList.add('present');
+            } 
+            else if (dot.classList.contains('present')) {
+                // Set Absent
+                await setDoc(ref, { status: 'absent', memberId: mId, eventId: eId, timestamp: new Date() }, {merge:true});
+                dot.classList.remove('present');
+                dot.classList.add('absent');
+            } 
+            else {
+                // Delete
+                await deleteDoc(ref);
+                dot.classList.remove('absent');
+            }
+        };
+
+        // Search Filter
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allMembers.filter(m => `${m.first_name} ${m.last_name}`.toLowerCase().includes(term));
+            
+            const container = document.getElementById('memberList');
+            container.innerHTML = ""; 
+            // Re-render simplified (without grouping for search results, or re-group)
+            // For simplicity in search, we just dump cards or re-run renderList with filtered array
+            // Re-running renderList preserves grouping logic:
+            renderList(filtered);
+        });
+
+        document.getElementById('logoutBtn').onclick = (e) => {
+            e.preventDefault();
+            signOut(auth).then(() => window.location.href="/index.html");
+        };
+    </script>
+</body>
+</html>
